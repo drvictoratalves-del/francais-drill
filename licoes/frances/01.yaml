@@ -1,0 +1,56 @@
+# Licao 1 -- entrada da rampa.
+#
+# Calibrada para o OUVIDO, nao para o olho. O diagnostico de 12/08/2026 mediu
+# leitura em B1, mas a escuta esta atras -- e a primeira versao desta licao
+# (hoje a 05) usava frases de 12 palavras com duas estruturas dificeis
+# empilhadas. Ler, dava. Ouvir de primeira, nao.
+#
+# Regra desta faixa: frases de 4 a 7 palavras, vocabulario do dia a dia,
+# uma estrutura por vez. Os erros sao os classicos de lusofono, nao
+# sutilezas de registro.
+
+id: "01"
+titulo: "Combinar de sair"
+nivel: "A2"
+
+cena:
+  - "Tu fais quoi ce soir ?"
+  - "Rien de spécial. Et toi ?"
+  - "Je vais au cinéma. Tu viens ?"
+  - "Pourquoi pas. À quelle heure ?"
+  - "La séance est à huit heures."
+
+blocos:
+  - tipo: decomposicao
+    itens:
+      - fr: "Tu fais quoi ce soir ?"
+        pt: "O que você vai fazer hoje à noite?"
+      - fr: "Rien de spécial."
+        pt: "Nada de especial."
+      - fr: "Je vais au cinéma."
+        pt: "Eu vou ao cinema."
+      - fr: "Pourquoi pas."
+        pt: "Por que não. — em francês, é assim que se aceita um convite."
+      - fr: "La séance est à huit heures."
+        pt: "A sessão é às oito."
+
+  - tipo: semaforo
+    itens:
+      - errado: "Je vais à le cinéma."
+        certo: "Je vais au cinéma."
+        nota_pt: "À mais le vira au, sempre. A contração não é opcional em francês, como não é em português com ao."
+      - errado: "Rien spécial."
+        certo: "Rien de spécial."
+        nota_pt: "Depois de rien, quelque chose e personne, o adjetivo pede de na frente."
+      - errado: "Pourquoi non ?"
+        certo: "Pourquoi pas ?"
+        nota_pt: "Pourquoi pas é forma fixa. Pourquoi non não existe em francês."
+
+  - tipo: producao
+    itens:
+      - pergunta: "Tu fais quoi ce soir ?"
+        resposta: "Rien de spécial."
+      - pergunta: "Tu viens au cinéma ?"
+        resposta: "Pourquoi pas."
+      - pergunta: "La séance est à quelle heure ?"
+        resposta: "La séance est à huit heures."

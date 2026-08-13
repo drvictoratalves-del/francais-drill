@@ -1,0 +1,46 @@
+# Licao 1 -- alvo B1 -> B2.
+#
+# As duas estruturas atacadas aqui sao EXATAMENTE as que escaparam no
+# diagnostico de 12/08/2026: `bien que` + subjuntivo e a clivada `ce qui...
+# c'est`. Nao e curriculo generico -- e a lacuna medida.
+#
+# Tema deliberadamente fora da medicina (ver spec, secao 2).
+
+id: "05"
+titulo: "Discordar sem brigar"
+nivel: "B1+"
+
+cena:
+  - "Alors, tu as aimé le film ?"
+  - "Bof. Bien qu'il soit très bien filmé, je me suis un peu ennuyé."
+  - "Ah bon ? Ce qui m'a plu, moi, c'est justement la lenteur."
+  - "Je ne suis pas sûr que ce soit voulu, mais bon."
+
+blocos:
+  - tipo: decomposicao
+    itens:
+      - fr: "Bien qu'il soit très bien filmé, je me suis un peu ennuyé."
+        pt: "Embora seja muito bem filmado, eu me entediei um pouco."
+      - fr: "Ce qui m'a plu, c'est justement la lenteur."
+        pt: "O que me agradou foi justamente a lentidão."
+      - fr: "Je ne suis pas sûr que ce soit voulu."
+        pt: "Não tenho certeza de que seja proposital."
+
+  - tipo: semaforo
+    itens:
+      - errado: "Bien qu'il est très bien filmé."
+        certo: "Bien qu'il soit très bien filmé."
+        nota_pt: "Bien que exige subjuntivo, sempre. O indicativo aqui é o deslize mais comum de quem já fala bem."
+      - errado: "Je ne suis pas sûr que c'est voulu."
+        certo: "Je ne suis pas sûr que ce soit voulu."
+        nota_pt: "Dúvida e negação puxam o subjuntivo. Só a certeza aceita o indicativo: je suis sûr que c'est voulu."
+      - errado: "J'ai ennuyé un peu."
+        certo: "Je me suis un peu ennuyé."
+        nota_pt: "S'ennuyer é pronominal. Sem o se, você entediou outra pessoa."
+
+  - tipo: producao
+    itens:
+      - pergunta: "Le film t'a plu ?"
+        resposta: "Bien qu'il soit long, je l'ai trouvé beau."
+      - pergunta: "Tu es sûr que c'était voulu ?"
+        resposta: "Je ne suis pas sûr que ce soit voulu."

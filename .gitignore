@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+_privado/
+saida/
+*.mp3
+*.pdf
+*.html
+!francais_drill/assets/*.mp3
+!docs/*.html
