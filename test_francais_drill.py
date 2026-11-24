@@ -332,3 +332,147 @@ def test_asset_de_silencio_acompanha_o_pacote():
     foi o que aconteceu ao mudar o projeto de lugar em 13/08/2026."""
     from francais_drill.gerar import _ARQ_SILENCIO
     assert _ARQ_SILENCIO.exists(), f"asset ausente: {_ARQ_SILENCIO}"
+
+
+
+# --------------------------------------------------------------------------
+# v2 -- YAML estendido, 4 estagios, audio real/timestamps, blocos e indice
+# --------------------------------------------------------------------------
+
+
+def test_duracao_mp3_mede_asset_de_silencio():
+    """duracao_mp3 deve medir o asset real de 700 ms sem depender de ffmpeg."""
+    from francais_drill.gerar import _ARQ_SILENCIO, duracao_mp3
+
+    dur = duracao_mp3(_ARQ_SILENCIO.read_bytes())
+    assert 0.5 <= dur <= 0.9
+
+
+def test_licao_v2_campos_opcionais_e_validacao(tmp_path: Path):
+    arq = tmp_path / "aula.yaml"
+    arq.write_text(
+        LICAO_YAML
+        + """
+bloco: "1 · Sobrevivência"
+tipo: "aula"
+ordem: 1
+foco: "Pedir café com cortesia"
+vocabulario:
+  - fr: "un café"
+    pt: "um café"
+pronuncia:
+  - fr: "Je voudrais un café."
+    pt: "Eu gostaria de um café."
+    dica: "Mantenha o s final de voudrais mudo."
+fala_livre:
+  enunciado: "Peça um café sem ler."
+  passos: ["Cumprimente", "Peça com je voudrais"]
+  criterio: "Pedido claro"
+  duracao_alvo_s: 45
+""",
+        encoding="utf-8",
+    )
+    lic = carregar(arq)
+    assert lic.bloco == "1 · Sobrevivência"
+    assert lic.tipo == "aula"
+    assert lic.ordem == 1
+    assert len(lic.vocabulario) == 1
+    assert lic.pronuncia[0]["dica"].startswith("Mantenha")
+    assert lic.fala_livre["duracao_alvo_s"] == 45
+
+    ruim = tmp_path / "ruim_tipo.yaml"
+    ruim.write_text(LICAO_YAML + '\ntipo: "podcast"\n', encoding="utf-8")
+    with pytest.raises(LicaoInvalidaError) as err:
+        carregar(ruim)
+    assert "tipo" in str(err.value)
+
+
+def test_todas_licoes_do_repositorio_passam_invariantes_pedagogicas():
+    """Todo YAML publicado em licoes/frances/ precisa carregar e cumprir T2 + T3."""
+    pasta = Path(__file__).parent / "licoes" / "frances"
+    arquivos = sorted(pasta.glob("*.yaml"))
+    assert len(arquivos) >= 8
+
+    for arq in arquivos:
+        lic = carregar(arq)
+        passos = montar(lic)
+        textos = _textos(passos)
+        n = len(lic.cena)
+        assert textos[:n] == textos[-n:] == list(lic.cena), f"arco quebrado em {arq.name}"
+        for bloco in lic.blocos:
+            if bloco.tipo == "semaforo":
+                for item in bloco.itens:
+                    assert textos.count(item["errado"]) == 1, f"erro repetido em {arq.name}: {item['errado']}"
+                    assert textos.count(item["certo"]) >= 3, f"certo insuficiente em {arq.name}: {item['certo']}"
+
+
+def test_montar_bloco_encadeia_licoes_com_separador(licao):
+    from francais_drill.montar import montar_bloco
+
+    passos = montar_bloco([licao, licao])
+    textos = _textos(passos)
+    assert textos[0].startswith("Lição 01.")
+    assert textos.count("Je veux un cafe.") == 2  # 1 por licao
+
+
+def test_app_v2_traz_4_estagios_gravacao_ab_gemini_e_notion(licao):
+    midia = {
+        "cena_src": "./audio/teste_cena.mp3",
+        "cena_duracao": 12.5,
+        "cena_tempos": [[0.0, 5.5], [6.2, 12.5]],
+        "treino_src": "./audio/teste_treino.mp3",
+        "clips": {"-15%|Je voudrais un cafe.": [0.0, 2.0]},
+        "vel_normal": "-15%",
+        "vel_lento": "-35%",
+    }
+    html = como_html(licao, midia=midia)
+    for esperado in (
+        "1 · Escuta",
+        "2 · Pronúncia",
+        "3 · Drill",
+        "4 · Fala livre",
+        "Comparar A/B",
+        "gemini-3.8-flash",
+        "https://generativelanguage.googleapis.com/v1beta/interactions",
+        "Copiar resumo para o Notion",
+        "./audio/teste_cena.mp3",
+        "francais_drill_erros_v1",
+    ):
+        assert esperado in html
+
+
+def test_gerar_indice_agrupa_por_bloco_e_preserva_slugs_legados(licao):
+    from francais_drill.site import gerar_indice_html, slug_arquivo
+
+    assert slug_arquivo(licao) == "frances_01_pedir-um-cafe"
+    from francais_drill.licao import Licao
+
+    aula = Licao(id="aula-01", titulo="Aula 01 — Chegada", nivel="A1", cena=("Salut.",), blocos=())
+    assert slug_arquivo(aula) == "aula-01_chegada"
+    idx = gerar_indice_html(
+        [
+            {
+                "id": "aula-01",
+                "titulo": "Aula 01 — Chegada",
+                "nivel": "A1 → A2",
+                "bloco": "1 · Sobrevivência e Chegada (01–05)",
+                "arquivo": "aula-01_chegada.html",
+                "foco": "Apresentação",
+                "duracao_s": 108,
+            },
+            {
+                "id": "01",
+                "titulo": "Combinar de sair",
+                "nivel": "A2",
+                "bloco": "Drills extras",
+                "arquivo": "frances_01_combinar-de-sair.html",
+                "foco": "Rampa",
+                "duracao_s": 15,
+            },
+        ]
+    )
+    assert "1 · Sobrevivência e Chegada (01–05)" in idx
+    assert "Drills extras" in idx
+    assert "./aula-01_chegada.html" in idx
+    assert "./frances_01_combinar-de-sair.html" in idx
+    assert "Caderno de Erros" in idx

@@ -12,6 +12,10 @@
 id: "01"
 titulo: "Combinar de sair"
 nivel: "A2"
+bloco: "Drills extras"
+tipo: "drill"
+ordem: 91
+foco: "Entrada da rampa: convite informal, contração au e rien de + adjetivo"
 
 cena:
   - "Tu fais quoi ce soir ?"

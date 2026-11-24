@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+.venv/
+.audio_cache/
 _privado/
 saida/
 *.mp3
@@ -8,3 +10,4 @@ saida/
 *.html
 !francais_drill/assets/*.mp3
 !docs/*.html
+!docs/audio/*.mp3

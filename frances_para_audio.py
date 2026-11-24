@@ -1,18 +1,17 @@
-"""Gera o MP3 de uma licao de frances.
+"""Gera MP3 de caminhada, blocos longos e o site web completo do francais-drill.
 
-    python scripts/frances_para_audio.py licoes/frances/01.yaml
-    python scripts/frances_para_audio.py licoes/frances/01.yaml --saida "C:/tmp"
+    python frances_para_audio.py licoes/frances/01.yaml
+    python frances_para_audio.py licoes/frances/01.yaml --saida ./saida --sem-pdf
+    python frances_para_audio.py --construir-site docs
+    python frances_para_audio.py --compilar-bloco licoes/frances/aula_0*.yaml --nome bloco-1 --saida ./saida
 
-CLI separado do pacote pelo mesmo motivo de `texto_para_audio.py`: modulo
-dentro de pacote com import relativo nao roda como script solto, e chamar
-`python -m` exige o cwd certo. O ponto de entrada fica aqui, plano.
-
-Spec: docs/superpowers/specs/2026-08-12-drill-frances-audio-design.md
+CLI separado do pacote para rodar direto sem `python -m`.
 """
 
 from __future__ import annotations
 
 import argparse
+import glob
 import sys
 from pathlib import Path
 
@@ -21,8 +20,9 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 from francais_drill.app import como_html  # noqa: E402
 from francais_drill.escrever import como_markdown  # noqa: E402
-from francais_drill.gerar import gerar  # noqa: E402
+from francais_drill.gerar import compilar_bloco, duracao_mp3, gerar  # noqa: E402
 from francais_drill.licao import LicaoInvalidaError, carregar  # noqa: E402
+from francais_drill.site import construir_site  # noqa: E402
 
 BITRATE_BPS = 48_000  # edge-tts entrega CBR 48 kbps
 
@@ -73,12 +73,73 @@ def _gerar_pdf(caminho_licao: Path, pasta: Path, nome: str) -> Path | None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Gera o MP3 (e o PDF) de uma licao de frances.")
-    p.add_argument("licao", help="caminho do YAML da licao")
+    p = argparse.ArgumentParser(description="Gera MP3 de caminhada, bloco longo ou o site web.")
+    p.add_argument("licao", nargs="?", help="caminho do YAML da licao")
     p.add_argument("--saida", default=None, help="pasta de destino (padrao: OneDrive)")
     p.add_argument("--sem-pdf", action="store_true", help="nao gerar o PDF")
     p.add_argument("--sem-app", action="store_true", help="nao gerar o app HTML")
+    p.add_argument(
+        "--construir-site",
+        metavar="PASTA_DOCS",
+        default=None,
+        help="gera HTML + audio web + index.html para todos os YAMLs",
+    )
+    p.add_argument(
+        "--pasta-licoes",
+        default="licoes/frances",
+        help="pasta de YAMLs usada por --construir-site (padrao: licoes/frances)",
+    )
+    p.add_argument(
+        "--forcar-audio",
+        action="store_true",
+        help="regera todos os MP3s web ignorando o cache",
+    )
+    p.add_argument(
+        "--compilar-bloco",
+        nargs="+",
+        metavar="YAML_OU_GLOB",
+        default=None,
+        help="compila varias licoes em um unico MP3 longo de caminhada",
+    )
+    p.add_argument(
+        "--nome",
+        default="bloco",
+        help="nome do arquivo de saida para --compilar-bloco",
+    )
     args = p.parse_args(argv)
+
+    if args.construir_site:
+        try:
+            itens = construir_site(
+                pasta_licoes=Path(args.pasta_licoes),
+                pasta_docs=Path(args.construir_site),
+                forcar_audio=args.forcar_audio,
+            )
+        except LicaoInvalidaError as erro:
+            print(f"LICAO INVALIDA: {erro}", file=sys.stderr)
+            return 2
+        print(f"OK: site construido em {args.construir_site} ({len(itens)} licoes)")
+        for it in itens:
+            print(f"  - {it['arquivo']} ({it['duracao_s']:.0f}s)")
+        return 0
+
+    if args.compilar_bloco:
+        caminhos: list[Path] = []
+        for padrao in args.compilar_bloco:
+            achados = sorted(glob.glob(padrao))
+            caminhos.extend(Path(a) for a in (achados or [padrao]))
+        try:
+            caminho = compilar_bloco(caminhos, args.nome, args.saida)
+        except (LicaoInvalidaError, ValueError) as erro:
+            print(f"ERRO: {erro}", file=sys.stderr)
+            return 2
+        minutos = duracao_mp3(caminho.read_bytes()) / 60
+        print(f"OK: {caminho}")
+        print(f"    {caminho.stat().st_size:,} bytes  (~{minutos:.1f} min, {len(caminhos)} licoes)")
+        return 0
+
+    if not args.licao:
+        p.error("informe o caminho de uma licao YAML, --construir-site ou --compilar-bloco")
 
     try:
         caminho = gerar(args.licao, args.saida)
@@ -86,7 +147,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"LICAO INVALIDA: {erro}", file=sys.stderr)
         return 2
 
-    minutos = caminho.stat().st_size * 8 / BITRATE_BPS / 60
+    minutos = duracao_mp3(caminho.read_bytes()) / 60
     print(f"OK: {caminho}")
     print(f"    {caminho.stat().st_size:,} bytes  (~{minutos:.1f} min)")
 

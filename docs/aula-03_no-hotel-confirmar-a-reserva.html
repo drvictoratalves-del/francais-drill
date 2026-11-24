@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12100e">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>Aula 03 — No hotel — confirmar a reserva — Drill de français</title>
+<style>
+  :root {
+    --fundo: #12100e;
+    --superficie: #1b1815;
+    --superficie-2: #24201c;
+    --borda: rgba(245, 241, 234, .14);
+    --borda-forte: rgba(245, 241, 234, .34);
+    --tinta: #f5f1ea;
+    --suave: #a3998e;
+    --acento: #d8a974;
+    --verde: #1f7a4d;
+    --verde-suave: rgba(31, 122, 77, .24);
+    --vermelho: #8c2f2f;
+    --vermelho-suave: rgba(140, 47, 47, .26);
+    --serif: "Georgia", "Iowan Old Style", serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--fundo); color: var(--tinta);
+    font-family: var(--sans); line-height: 1.5;
+    min-height: 100svh; display: flex; flex-direction: column;
+    transition: background 240ms ease;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  body.flash-acerto { background: #143624; }
+  body.flash-erro   { background: #3b1717; }
+
+  .topo {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(18, 16, 14, .94);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--borda);
+  }
+  .topo-barra {
+    max-width: 46rem; margin: 0 auto;
+    padding: .75rem 1rem .55rem;
+    display: flex; align-items: center; justify-content: space-between; gap: .75rem;
+  }
+  .voltar {
+    color: var(--suave); text-decoration: none; font-size: .88rem;
+    display: inline-flex; align-items: center; gap: .3rem;
+    padding: .35rem .5rem; border-radius: 6px;
+  }
+  .voltar:hover { color: var(--tinta); background: var(--superficie); }
+  .meta-topo { text-align: center; flex: 1; min-width: 0; }
+  .meta-titulo {
+    font-family: var(--serif); font-size: 1rem; font-weight: 400;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .meta-sub { font-size: .72rem; color: var(--suave); letter-spacing: .06em; text-transform: uppercase; }
+  .btn-icon {
+    background: var(--superficie); color: var(--tinta);
+    border: 1px solid var(--borda); border-radius: 8px;
+    padding: .4rem .65rem; font-size: .8rem; cursor: pointer;
+    min-height: 36px; white-space: nowrap;
+  }
+  .btn-icon:hover { border-color: var(--borda-forte); }
+  .btn-icon.ativo { border-color: var(--acento); color: var(--acento); }
+
+  .abas {
+    max-width: 46rem; margin: 0 auto;
+    padding: 0 .75rem .65rem;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: .4rem;
+  }
+  .aba {
+    background: transparent; color: var(--suave);
+    border: 1px solid var(--borda); border-radius: 8px;
+    padding: .5rem .3rem; font-size: .76rem; font-weight: 500;
+    cursor: pointer; text-align: center; min-height: 40px;
+    transition: all 140ms ease;
+  }
+  .aba:hover { color: var(--tinta); border-color: var(--borda-forte); }
+  .aba.ativa {
+    background: var(--tinta); color: var(--fundo); border-color: var(--tinta);
+    font-weight: 600;
+  }
+
+  main {
+    flex: 1; width: 100%; max-width: 46rem; margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
+  }
+  .painel { display: none; flex-direction: column; gap: 1rem; }
+  .painel.visivel { display: flex; }
+
+  .card {
+    background: var(--superficie); border: 1px solid var(--borda);
+    border-radius: 12px; padding: 1.15rem;
+  }
+  .rotulo {
+    font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--suave); margin-bottom: .35rem;
+  }
+  .frase-fr {
+    font-family: var(--serif); font-size: clamp(1.35rem, 4.6vw, 2.05rem);
+    line-height: 1.32; color: var(--tinta);
+  }
+  .traducao { font-size: .95rem; color: var(--suave); font-style: italic; margin-top: .5rem; }
+  .dica {
+    margin-top: .75rem; padding: .65rem .8rem;
+    background: rgba(216, 169, 116, .1); border-left: 3px solid var(--acento);
+    border-radius: 0 8px 8px 0; font-size: .86rem; color: #e8d5bd;
+  }
+
+  .linha-controles { display: flex; flex-wrap: wrap; gap: .55rem; align-items: center; }
+  .btn {
+    background: var(--superficie-2); color: var(--tinta);
+    border: 1px solid var(--borda); border-radius: 8px;
+    padding: .7rem 1rem; font-size: .92rem; font-family: inherit;
+    cursor: pointer; min-height: 44px; display: inline-flex;
+    align-items: center; justify-content: center; gap: .4rem;
+    transition: border-color 140ms ease, background 140ms ease;
+  }
+  .btn:hover:not(:disabled) { border-color: var(--borda-forte); }
+  .btn:disabled { opacity: .4; cursor: default; }
+  .btn-primario {
+    background: var(--tinta); color: var(--fundo); border-color: var(--tinta); font-weight: 600;
+  }
+  .btn-primario:hover:not(:disabled) { opacity: .92; }
+  .btn-acento {
+    background: rgba(216, 169, 116, .16); color: var(--acento);
+    border-color: rgba(216, 169, 116, .45);
+  }
+  .btn-gravando {
+    background: var(--vermelho); color: #fff; border-color: #c24b4b;
+    animation: pulso 1.2s infinite;
+  }
+  .btn-verde { background: var(--verde); color: #fff; border-color: #2f9e66; }
+  .btn-vermelho { background: var(--vermelho); color: #fff; border-color: #b54545; }
+  .btn-grow { flex: 1; }
+  .btn-sm { padding: .45rem .75rem; font-size: .82rem; min-height: 36px; }
+  @keyframes pulso { 0%,100%{opacity:1} 50%{opacity:.78} }
+
+  /* Player de audio longo (Estagio 1) */
+  .player-topo { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+  .tempo-barra { display: flex; align-items: center; gap: .65rem; margin-top: .85rem; }
+  .tempo-txt { font-variant-numeric: tabular-nums; font-size: .8rem; color: var(--suave); min-width: 3.1rem; }
+  input[type="range"] {
+    flex: 1; accent-color: var(--acento); cursor: pointer; height: 28px;
+  }
+  .vel-grupo { display: inline-flex; gap: .25rem; margin-left: auto; }
+  .pill {
+    background: transparent; color: var(--suave);
+    border: 1px solid var(--borda); border-radius: 999px;
+    padding: .3rem .65rem; font-size: .78rem; cursor: pointer; min-height: 32px;
+  }
+  .pill.ativa { background: var(--acento); color: #12100e; border-color: var(--acento); font-weight: 600; }
+
+  .modo-texto { display: flex; gap: .4rem; flex-wrap: wrap; }
+  .cena-lista { display: flex; flex-direction: column; gap: .35rem; margin-top: .75rem; }
+  .cena-linha {
+    display: flex; align-items: baseline; gap: .65rem;
+    padding: .6rem .75rem; border-radius: 8px;
+    border: 1px solid transparent; background: transparent;
+    color: var(--tinta); text-align: left; cursor: pointer;
+    font-family: var(--serif); font-size: 1.03rem; line-height: 1.45;
+  }
+  .cena-linha:hover { background: var(--superficie-2); }
+  .cena-linha.tocando {
+    background: rgba(216, 169, 116, .14); border-color: rgba(216, 169, 116, .45);
+  }
+  .cena-num {
+    font-family: var(--sans); font-size: .72rem; color: var(--suave);
+    min-width: 1.5rem; font-variant-numeric: tabular-nums;
+  }
+
+  .vocab-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+    gap: .5rem; margin-top: .75rem;
+  }
+  .vocab-item {
+    padding: .55rem .7rem; border-radius: 8px;
+    background: var(--superficie-2); border: 1px solid var(--borda);
+  }
+  .vocab-fr { font-family: var(--serif); font-size: .96rem; color: var(--tinta); }
+  .vocab-pt { font-size: .82rem; color: var(--suave); }
+
+  /* Diff palavra por palavra e feedback IA */
+  .diff-box {
+    margin-top: .75rem; padding: .7rem .85rem; border-radius: 8px;
+    background: var(--superficie-2); border: 1px solid var(--borda);
+    font-size: .92rem; line-height: 1.65;
+  }
+  .w-ok { color: #7ee2ab; }
+  .w-miss { color: #f2a0a0; text-decoration: underline wavy #d96b6b; }
+
+  .ia-box {
+    margin-top: .75rem; padding: .85rem .95rem; border-radius: 10px;
+    background: rgba(216, 169, 116, .08); border: 1px solid rgba(216, 169, 116, .35);
+    font-size: .9rem; line-height: 1.6; white-space: pre-wrap;
+  }
+  .ia-box.erro {
+    background: var(--vermelho-suave); border-color: rgba(217, 107, 107, .5);
+  }
+
+  .drill-status {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: .82rem; color: var(--suave); margin-bottom: .5rem;
+  }
+  .badge {
+    display: inline-block; padding: .18rem .55rem; border-radius: 999px;
+    font-size: .74rem; border: 1px solid var(--borda); color: var(--suave);
+  }
+  .badge-semaforo { border-color: rgba(216, 169, 116, .5); color: var(--acento); }
+  .badge-verde { background: var(--verde-suave); border-color: var(--verde); color: #9ce6be; }
+  .badge-vermelho { background: var(--vermelho-suave); border-color: var(--vermelho); color: #f5b4b4; }
+
+  .veredito {
+    margin-top: .85rem; padding: .85rem .95rem; border-radius: 10px;
+    border: 1px solid var(--borda); background: var(--superficie-2);
+  }
+  .veredito.ok { background: var(--verde-suave); border-color: rgba(47, 158, 102, .55); }
+  .veredito.err { background: var(--vermelho-suave); border-color: rgba(194, 75, 75, .55); }
+
+  .passos-lista { padding-left: 1.2rem; display: flex; flex-direction: column; gap: .45rem; margin-top: .6rem; font-size: .92rem; color: #ddd6cd; }
+  .aviso { font-size: .82rem; color: var(--suave); line-height: 1.45; }
+  .oculto { display: none !important; }
+
+  /* Modal IA */
+  dialog {
+    background: var(--superficie); color: var(--tinta);
+    border: 1px solid var(--borda-forte); border-radius: 14px;
+    padding: 1.25rem; max-width: 28rem; width: calc(100% - 2rem);
+    margin: auto;
+  }
+  dialog::backdrop { background: rgba(0, 0, 0, .72); }
+  .campo { display: flex; flex-direction: column; gap: .35rem; margin-top: .85rem; }
+  .campo label { font-size: .82rem; color: var(--suave); }
+  .campo input {
+    background: var(--fundo); color: var(--tinta);
+    border: 1px solid var(--borda-forte); border-radius: 8px;
+    padding: .65rem .75rem; font-size: .92rem; font-family: inherit;
+  }
+
+  .nav-rodape {
+    display: flex; justify-content: space-between; align-items: center;
+    gap: .5rem; margin-top: .5rem;
+  }
+</style>
+</head>
+<body>
+<header class="topo">
+  <div class="topo-barra">
+    <a class="voltar" href="./index.html">← Lições</a>
+    <div class="meta-topo">
+      <div class="meta-titulo">Aula 03 — No hotel — confirmar a reserva</div>
+      <div class="meta-sub" id="meta-sub"></div>
+    </div>
+    <button class="btn-icon" id="btn-config-ia" type="button">⚙️ IA</button>
+  </div>
+  <nav class="abas" role="tablist" aria-label="Estágios da lição">
+    <button class="aba ativa" data-aba="escuta" role="tab" aria-selected="true">1 · Escuta</button>
+    <button class="aba" data-aba="pronuncia" role="tab" aria-selected="false">2 · Pronúncia</button>
+    <button class="aba" data-aba="drill" role="tab" aria-selected="false">3 · Drill</button>
+    <button class="aba" data-aba="livre" role="tab" aria-selected="false">4 · Fala livre</button>
+  </nav>
+</header>
+
+<main>
+  <!-- ESTAGIO 1: ESCUTA LONGA -->
+  <section class="painel visivel" id="painel-escuta" role="tabpanel">
+    <div class="card">
+      <div class="rotulo">Áudio longo narrado · fr-FR-DeniseNeural</div>
+      <div id="foco-texto" class="aviso" style="margin-bottom:.85rem"></div>
+      <div class="player-topo">
+        <button class="btn btn-primario" id="cena-play" type="button">▶ Ouvir cena</button>
+        <button class="btn btn-sm" id="cena-voltar" type="button">↺ −5s</button>
+        <button class="btn btn-sm" id="cena-avancar" type="button">+5s ↻</button>
+        <div class="vel-grupo" aria-label="Velocidade">
+          <button class="pill" data-vel="0.75" type="button">0.75×</button>
+          <button class="pill" data-vel="0.85" type="button">0.85×</button>
+          <button class="pill ativa" data-vel="1" type="button">1.0×</button>
+        </div>
+      </div>
+      <div class="tempo-barra">
+        <span class="tempo-txt" id="cena-atual">0:00</span>
+        <input type="range" id="cena-seek" min="0" max="100" step="0.1" value="0" aria-label="Progresso do áudio">
+        <span class="tempo-txt" id="cena-total" style="text-align:right">0:00</span>
+      </div>
+      <div class="linha-controles" style="margin-top:.75rem">
+        <button class="btn btn-sm" id="cena-loop-linha" type="button">🔁 Repetir frase: não</button>
+        <a class="btn btn-sm oculto" id="cena-download" download>⬇ Baixar MP3</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="modo-texto">
+        <button class="pill ativa" data-modo="oculto" type="button">🙈 Oculto (escute primeiro)</button>
+        <button class="pill" data-modo="fr" type="button">📖 Texto em francês</button>
+        <button class="pill" data-modo="vocab" type="button">📚 Vocabulário</button>
+      </div>
+      <div id="bloco-oculto" class="aviso" style="margin-top:.8rem">
+        Ouça o áudio inteiro primeiro buscando o sentido geral, sem pausar para traduzir cada palavra.
+        Depois abra <b>Texto em francês</b> para clicar em qualquer fala e repetir o trecho exato.
+      </div>
+      <div id="bloco-cena" class="cena-lista oculto"></div>
+      <div id="bloco-vocab" class="oculto">
+        <div id="vocab-grid" class="vocab-grid"></div>
+      </div>
+    </div>
+
+    <div class="nav-rodape">
+      <span class="aviso" id="escuta-dica">Clique em qualquer frase do texto para ouvir aquele trecho.</span>
+      <button class="btn btn-primario" data-ir="pronuncia" type="button">Ir para Pronúncia →</button>
+    </div>
+  </section>
+
+  <!-- ESTAGIO 2: FALAS PARA PRONUNCIAR (SHADOWING & A/B) -->
+  <section class="painel" id="painel-pronuncia" role="tabpanel">
+    <div class="card">
+      <div class="drill-status">
+        <span>Falas para pronunciar · Shadowing &amp; A/B</span>
+        <span id="pron-passo" class="badge"></span>
+      </div>
+      <div class="frase-fr" id="pron-fr"></div>
+      <div class="traducao oculto" id="pron-pt"></div>
+      <div class="dica oculto" id="pron-dica"></div>
+
+      <div class="linha-controles" style="margin-top:1rem">
+        <button class="btn" id="pron-ouvir" type="button">🔊 Normal</button>
+        <button class="btn" id="pron-lento" type="button">🐢 Devagar</button>
+        <button class="btn btn-sm" id="pron-toggle-pt" type="button">Traduzir</button>
+        <button class="btn btn-sm" id="pron-salvar-erro" type="button">🔖 Salvar erro</button>
+      </div>
+
+      <div class="linha-controles" style="margin-top:.75rem">
+        <button class="btn btn-primario btn-grow" id="pron-gravar" type="button">🎙️ Gravar minha fala</button>
+        <button class="btn oculto" id="pron-checar-palavras" type="button">🔤 Checar palavras</button>
+      </div>
+
+      <div class="linha-controles oculto" id="pron-pos-gravacao" style="margin-top:.65rem">
+        <button class="btn" id="pron-ouvir-minha" type="button">▶ Minha voz</button>
+        <button class="btn btn-acento" id="pron-ab" type="button">⇄ Comparar A/B</button>
+        <button class="btn btn-acento" id="pron-ia" type="button">✨ Avaliar pronúncia (IA)</button>
+      </div>
+
+      <div id="pron-diff" class="diff-box oculto"></div>
+      <div id="pron-ia-out" class="ia-box oculto"></div>
+      <p class="aviso" id="pron-aviso" style="margin-top:.75rem"></p>
+    </div>
+
+    <div class="nav-rodape">
+      <button class="btn" id="pron-ant" type="button">← Anterior</button>
+      <button class="btn btn-primario" id="pron-prox" type="button">Próxima fala →</button>
+    </div>
+  </section>
+
+  <!-- ESTAGIO 3: DRILL (SEMAFORO & PRODUCAO) -->
+  <section class="painel" id="painel-drill" role="tabpanel">
+    <div class="card">
+      <div class="drill-status">
+        <span id="drill-tipo" class="badge"></span>
+        <span id="drill-passo" class="badge"></span>
+      </div>
+      <div class="rotulo" id="rotulo">Écoutez</div>
+      <div class="frase-fr" id="frase"></div>
+      <div class="traducao" id="traducao"></div>
+
+      <div class="veredito oculto" id="drill-veredito">
+        <div id="ouvido" class="aviso" style="margin-bottom:.4rem"></div>
+        <div class="frase-fr" id="certo" style="font-size:clamp(1.2rem,4vw,1.65rem)"></div>
+        <div id="drill-diff" style="margin-top:.45rem;font-size:.9rem"></div>
+        <div id="nota" class="dica oculto"></div>
+      </div>
+
+      <div class="linha-controles" style="margin-top:1rem">
+        <button class="btn" id="repetir" type="button">🔊 Répéter</button>
+        <button class="btn btn-primario btn-grow" id="agir" type="button">Commencer</button>
+      </div>
+
+      <div class="linha-controles oculto" id="drill-autoavaliacao" style="margin-top:.65rem">
+        <button class="btn btn-verde btn-grow" id="drill-acertei" type="button">✓ Acertei</button>
+        <button class="btn btn-vermelho btn-grow" id="drill-errei" type="button">✕ Preciso treinar</button>
+      </div>
+
+      <p class="aviso" id="aviso" style="margin-top:.85rem"></p>
+    </div>
+
+    <div class="nav-rodape">
+      <span class="aviso" id="drill-placar"></span>
+      <button class="btn" data-ir="livre" type="button">Ir para Fala livre →</button>
+    </div>
+  </section>
+
+  <!-- ESTAGIO 4: FALA LIVRE & RESUMO NOTION -->
+  <section class="painel" id="painel-livre" role="tabpanel">
+    <div class="card">
+      <div class="rotulo">Missão oral · Produção livre</div>
+      <div id="livre-enunciado" style="font-size:1.02rem;line-height:1.55"></div>
+      <ol id="livre-passos" class="passos-lista"></ol>
+      <div id="livre-criterio" class="dica oculto"></div>
+
+      <div class="linha-controles" style="margin-top:1rem">
+        <button class="btn btn-primario btn-grow" id="livre-gravar" type="button">🎙️ Gravar fala livre</button>
+        <span class="badge" id="livre-timer">00:00</span>
+      </div>
+
+      <div class="linha-controles oculto" id="livre-pos" style="margin-top:.65rem">
+        <button class="btn" id="livre-ouvir" type="button">▶ Ouvir minha fala</button>
+        <button class="btn btn-acento btn-grow" id="livre-ia" type="button">✨ Avaliar na rubrica (IA)</button>
+      </div>
+
+      <div id="livre-ia-out" class="ia-box oculto"></div>
+    </div>
+
+    <div class="card">
+      <div class="rotulo">Fechamento da sessão · Ponte com o Notion</div>
+      <div id="resumo-stats" class="aviso" style="margin-bottom:.85rem"></div>
+      <div class="linha-controles">
+        <button class="btn btn-verde btn-grow" id="btn-marcar-feita" type="button">✓ Marcar lição praticada</button>
+        <button class="btn btn-acento btn-grow" id="btn-copiar-notion" type="button">📋 Copiar resumo para o Notion</button>
+      </div>
+      <p class="aviso" id="copia-feedback" style="margin-top:.6rem"></p>
+    </div>
+  </section>
+</main>
+
+<dialog id="modal-ia">
+  <h3 style="font-family:var(--serif);font-weight:400;font-size:1.25rem">Avaliação de pronúncia com IA</h3>
+  <p class="aviso" style="margin-top:.45rem">
+    Opcional. Sua chave Gemini fica salva <b>apenas neste navegador</b> (<code>localStorage</code>) e
+    envia somente o áudio gravado por você com <code>store: false</code> para avaliar fonemas, nasais e ligações.
+  </p>
+  <div class="campo">
+    <label for="ia-key">Gemini API Key (aistudio.google.com)</label>
+    <input type="password" id="ia-key" placeholder="AIza..." autocomplete="off">
+  </div>
+  <div class="campo">
+    <label for="ia-model">Modelo Gemini</label>
+    <input type="text" id="ia-model" value="gemini-3.8-flash">
+  </div>
+  <div class="linha-controles" style="margin-top:1.1rem">
+    <button class="btn btn-primario btn-grow" id="ia-salvar" type="button">Salvar</button>
+    <button class="btn" id="ia-limpar" type="button">Remover</button>
+    <button class="btn" id="ia-fechar" type="button">Fechar</button>
+  </div>
+</dialog>
+
+<audio id="audio-cena" preload="metadata"></audio>
+<audio id="audio-treino" preload="metadata"></audio>
+
+<script>
+const DADOS = {"id": "aula-03", "titulo": "Aula 03 — No hotel — confirmar a reserva", "nivel": "A1 → A2", "bloco": "1 · Sobrevivência e Chegada (01–05)", "tipo": "aula", "foco": "Reserva de hotel, horários completos, pedido de repetição e prolongamento de estadia", "rate": 0.9, "vel_normal": "-10%", "vel_lento": "-30%", "cena": ["À l'hôtel.", "Vendredi soir, après mon arrivée, j'ai pris un taxi pour aller à l'hôtel. L'hôtel était petit mais très joli, près du parc.", "À la réception, un monsieur m'a demandé : « Bonjour, vous avez une réservation ? »", "J'ai répondu : « Oui, au nom d'Alves, pour deux nuits. »", "« Une chambre pour une personne, c'est bien ça ? »", "« Oui, c'est ça. Le petit-déjeuner est compris ? »", "« Oui, il est servi de sept heures à dix heures, dans la salle du rez-de-chaussée. »", "« Vous pouvez répéter les horaires, s'il vous plaît ? »", "« Bien sûr. De sept heures à dix heures. »", "« Merci. Je reste une semaine. Je voudrais rester plus longtemps, c'est possible ? »", "« Oui, je peux ajouter cinq nuits. Votre chambre est au deuxième étage. Voici la clé. »", "« Merci beaucoup. Il y a un ascenseur ? »", "« Oui, à gauche. Et le mot de passe du Wi-Fi est sur le papier, dans la chambre. »", "« Parfait. Bonne soirée ! »", "« Bonne soirée, monsieur. Bon séjour ! »"], "vocabulario": [{"fr": "une réservation", "pt": "uma reserva"}, {"fr": "au nom de", "pt": "em nome de"}, {"fr": "une chambre", "pt": "um quarto"}, {"fr": "le petit-déjeuner", "pt": "o café da manhã"}, {"fr": "compris(e)", "pt": "incluído(a)"}, {"fr": "le rez-de-chaussée", "pt": "o térreo"}, {"fr": "le deuxième étage", "pt": "o segundo andar"}, {"fr": "la clé", "pt": "a chave"}, {"fr": "l'ascenseur", "pt": "o elevador"}, {"fr": "le mot de passe", "pt": "a senha"}, {"fr": "plus longtemps", "pt": "mais tempo"}, {"fr": "bon séjour", "pt": "boa estadia"}], "pronuncia": [{"fr": "Oui, au nom d'Alves, pour deux nuits.", "pt": "Sim, em nome de Alves, para duas noites.", "dica": "Em 'deux' (/dø/), arredonde os lábios; em 'nuits' (/nɥi/), o 'ts' final é mudo."}, {"fr": "Le petit-déjeuner est compris ?", "pt": "O café da manhã está incluído?", "dica": "O 's' final de 'compris' é mudo (/kɔ̃.pʁi/)."}, {"fr": "Il est servi de sept heures à dix heures.", "pt": "É servido das sete às dez.", "dica": "Pronuncie o 't' de 'sept' (/sɛt/) e faça liaison em 'dix heures' (/di.zœʁ/)."}, {"fr": "Vous pouvez répéter les horaires, s'il vous plaît ?", "pt": "Pode repetir os horários, por favor?", "dica": "Liaison obrigatória em 'les horaires' (/le.zɔ.ʁɛʁ/), pois o 'h' é mudo."}, {"fr": "Je voudrais rester plus longtemps, c'est possible ?", "pt": "Gostaria de ficar mais tempo, é possível?", "dica": "Em 'longtemps', só duas sílabas nasais (/lɔ̃.tɑ̃/); 'g', 'p' e 's' são mudos."}, {"fr": "Votre chambre est au deuxième étage.", "pt": "Seu quarto fica no segundo andar.", "dica": "O 'x' em 'deuxième' soa /z/ (/dø.zjɛm/), seguido de liaison suave."}, {"fr": "Il y a un ascenseur ?", "pt": "Tem elevador?", "dica": "'Ascenseur' tem nasal /ɑ̃/ e termina em /œʁ/ arredondado."}, {"fr": "Le mot de passe du Wi-Fi est sur le papier.", "pt": "A senha do Wi-Fi está no papel.", "dica": "'Mot' tem 't' mudo (/mo/); 'du' e 'sur' usam /y/ bem projetado."}], "itens": [{"tipo": "semaforo", "pergunta": "Comment dit-on, correctement : « J'ai une réservation dans le nom d'Alves. » ?", "errado": "J'ai une réservation dans le nom d'Alves.", "resposta": "J'ai une réservation au nom d'Alves.", "nota": "Em nome de em francês é sempre au nom de, não dans le nom de."}, {"tipo": "semaforo", "pergunta": "Comment dit-on, correctement : « Le petit-déjeuner est servi depuis sept heures jusqu'à dix. » ?", "errado": "Le petit-déjeuner est servi depuis sept heures jusqu'à dix.", "resposta": "Le petit-déjeuner est servi de sept heures à dix heures.", "nota": "Para faixa de horário de funcionamento, o par padrão é de … à …"}, {"tipo": "semaforo", "pergunta": "Comment dit-on, correctement : « Je veux rester plus de temps. » ?", "errado": "Je veux rester plus de temps.", "resposta": "Je voudrais rester plus longtemps.", "nota": "Use je voudrais por cortesia e o advérbio fixo plus longtemps para mais tempo."}, {"tipo": "semaforo", "pergunta": "Comment dit-on, correctement : « J'ai prendu un taxi. » ?", "errado": "J'ai prendu un taxi.", "resposta": "J'ai pris un taxi.", "nota": "O particípio de prendre é irregular: pris."}, {"tipo": "producao", "pergunta": "Bonjour, vous avez une réservation ?", "resposta": "Oui, au nom d'Alves, pour deux nuits."}, {"tipo": "producao", "pergunta": "Comment demander si le petit-déjeuner est inclus ?", "resposta": "Le petit-déjeuner est compris ?"}, {"tipo": "producao", "pergunta": "Vous n'avez pas compris les horaires. Que dites-vous ?", "resposta": "Vous pouvez répéter les horaires, s'il vous plaît ?"}, {"tipo": "producao", "pergunta": "Comment demander à prolonger votre séjour ?", "resposta": "Je voudrais rester plus longtemps, c'est possible ?"}], "fala_livre": {"enunciado": "Você chega à recepção do hotel e há uma divergência na reserva (só consta uma noite, mas você reservou duas ou quer ficar mais tempo). Resolva a reserva e confirme os detalhes práticos.", "passos": ["Informe seu nome e corrija a quantidade de noites da reserva.", "Pergunte se o café da manhã está incluído e repita o horário completo para confirmar.", "Pergunte pelo elevador, andar do quarto ou senha do Wi-Fi."], "criterio": "Reserva identificada, duração corrigida quando necessário e horário compreendido.", "duracao_alvo_s": 60}, "notion_url": "https://app.notion.com/p/42205941420581478bcde002ad87ae78", "midia": {"cena_src": "./audio/aula-03_no-hotel-confirmar-a-reserva_cena.mp3", "cena_duracao": 91.2, "cena_tempos": [[0.0, 1.968], [2.76, 12.744], [13.536, 19.608], [20.4, 25.272], [26.064, 29.688], [30.48, 35.256], [36.048, 41.544], [42.336, 46.032], [46.824, 51.048], [51.84, 59.496], [60.288, 68.712], [69.504, 73.872], [74.664, 81.48], [82.272, 85.8], [86.592, 91.2]], "treino_src": "./audio/aula-03_no-hotel-confirmar-a-reserva_treino.mp3", "clips": {"-10%|Oui, au nom d'Alves, pour deux nuits.": [0.0, 3.792], "-30%|Oui, au nom d'Alves, pour deux nuits.": [4.584, 9.432], "-10%|Le petit-déjeuner est compris ?": [10.224, 13.032], "-30%|Le petit-déjeuner est compris ?": [13.824, 17.4], "-10%|Il est servi de sept heures à dix heures.": [18.192, 21.312], "-30%|Il est servi de sept heures à dix heures.": [22.104, 26.088], "-10%|Vous pouvez répéter les horaires, s'il vous plaît ?": [26.88, 30.696], "-30%|Vous pouvez répéter les horaires, s'il vous plaît ?": [31.488, 36.384], "-10%|Je voudrais rester plus longtemps, c'est possible ?": [37.176, 41.112], "-30%|Je voudrais rester plus longtemps, c'est possible ?": [41.904, 46.944], "-10%|Votre chambre est au deuxième étage.": [47.736, 50.904], "-30%|Votre chambre est au deuxième étage.": [51.696, 55.752], "-10%|Il y a un ascenseur ?": [56.544, 59.04], "-30%|Il y a un ascenseur ?": [59.832, 63.048], "-10%|Le mot de passe du Wi-Fi est sur le papier.": [63.84, 67.344], "-30%|Le mot de passe du Wi-Fi est sur le papier.": [68.136, 72.624], "-10%|Comment dit-on, correctement : « J'ai une réservation dans le nom d'Alves. » ?": [73.416, 78.984], "-10%|J'ai une réservation au nom d'Alves.": [79.776, 83.256], "-30%|J'ai une réservation au nom d'Alves.": [84.048, 88.512], "-10%|Comment dit-on, correctement : « Le petit-déjeuner est servi depuis sept heures jusqu'à dix. » ?": [89.304, 95.64], "-10%|Le petit-déjeuner est servi de sept heures à dix heures.": [96.432, 100.416], "-30%|Le petit-déjeuner est servi de sept heures à dix heures.": [101.208, 106.32], "-10%|Comment dit-on, correctement : « Je veux rester plus de temps. » ?": [107.112, 111.816], "-10%|Je voudrais rester plus longtemps.": [112.608, 115.416], "-30%|Je voudrais rester plus longtemps.": [116.208, 119.808], "-10%|Comment dit-on, correctement : « J'ai prendu un taxi. » ?": [120.6, 125.112], "-10%|J'ai pris un taxi.": [125.904, 128.304], "-30%|J'ai pris un taxi.": [129.096, 132.168], "-10%|Bonjour, vous avez une réservation ?": [132.96, 136.632], "-10%|Comment demander si le petit-déjeuner est inclus ?": [137.424, 141.072], "-10%|Vous n'avez pas compris les horaires. Que dites-vous ?": [141.864, 146.52], "-10%|Comment demander à prolonger votre séjour ?": [147.312, 150.84]}, "vel_normal": "-10%", "vel_lento": "-30%"}};
+const STORAGE_PROG = "francais_drill_progresso_v1";
+const STORAGE_ERROS = "francais_drill_erros_v1";
+const STORAGE_KEY = "francais_drill_gemini_key";
+const STORAGE_MODEL = "francais_drill_gemini_model";
+const MODELO_PADRAO = "gemini-3.8-flash";
+
+const $ = (id) => document.getElementById(id);
+const corpo = document.body;
+
+function lerJSON(chave, fallback) {
+  try { return JSON.parse(localStorage.getItem(chave) || "null") ?? fallback; }
+  catch { return fallback; }
+}
+function salvarJSON(chave, valor) {
+  try { localStorage.setItem(chave, JSON.stringify(valor)); } catch {}
+}
+
+// --- Sintese e reproducao (audio real DeniseNeural + fallback speechSynthesis) ---
+const audioCena = $("audio-cena");
+const audioTreino = $("audio-treino");
+let clipeAtivo = null;
+
+if (DADOS.midia && DADOS.midia.cena_src) {
+  audioCena.src = DADOS.midia.cena_src;
+  const dl = $("cena-download");
+  dl.href = DADOS.midia.cena_src;
+  dl.classList.remove("oculto");
+}
+if (DADOS.midia && DADOS.midia.treino_src) {
+  audioTreino.src = DADOS.midia.treino_src;
+}
+
+function falarSintese(texto, lento) {
+  return new Promise((resolve) => {
+    if (!window.speechSynthesis) return resolve();
+    speechSynthesis.cancel();
+    const f = new SpeechSynthesisUtterance(texto);
+    f.lang = "fr-FR";
+    // Mesma velocidade do MP3 da licao: app e audio nao podem divergir, senao
+    // o ouvido treina em dois ritmos e nenhum dos dois fixa.
+    f.rate = lento ? Math.max(0.5, DADOS.rate - 0.2) : DADOS.rate;
+    f.onend = resolve;
+    f.onerror = resolve;
+    speechSynthesis.speak(f);
+  });
+}
+
+function pararTreino() {
+  if (clipeAtivo) {
+    cancelAnimationFrame(clipeAtivo.raf);
+    clipeAtivo.resolve();
+    clipeAtivo = null;
+  }
+  audioTreino.pause();
+  if (window.speechSynthesis) speechSynthesis.cancel();
+}
+
+function falar(texto, lento = false) {
+  pararTreino();
+  const m = DADOS.midia;
+  if (m && m.treino_src && m.clips) {
+    const vel = lento ? m.vel_lento : m.vel_normal;
+    const faixa = m.clips[vel + "|" + texto] || m.clips[m.vel_normal + "|" + texto];
+    if (faixa) {
+      return new Promise((resolve) => {
+        const inicio = faixa[0];
+        const fim = faixa[1] + 0.08;
+        const encerrar = () => {
+          if (clipeAtivo && clipeAtivo.resolve === resolve) {
+            cancelAnimationFrame(clipeAtivo.raf);
+            clipeAtivo = null;
+          }
+          audioTreino.pause();
+          resolve();
+        };
+        const vigiar = () => {
+          if (!clipeAtivo || clipeAtivo.resolve !== resolve) return;
+          if (audioTreino.currentTime >= fim || audioTreino.ended) {
+            encerrar();
+            return;
+          }
+          clipeAtivo.raf = requestAnimationFrame(vigiar);
+        };
+        const iniciar = () => {
+          try { audioTreino.currentTime = inicio; } catch {}
+          clipeAtivo = { resolve, raf: 0 };
+          const p = audioTreino.play();
+          if (p && p.then) {
+            p.then(() => { clipeAtivo.raf = requestAnimationFrame(vigiar); })
+             .catch(() => { clipeAtivo = null; falarSintese(texto, lento).then(resolve); });
+          } else {
+            clipeAtivo.raf = requestAnimationFrame(vigiar);
+          }
+        };
+        if (audioTreino.readyState >= 1) iniciar();
+        else {
+          audioTreino.addEventListener("loadedmetadata", iniciar, { once: true });
+          audioTreino.load();
+        }
+      });
+    }
+  }
+  return falarSintese(texto, lento);
+}
+
+// --- Reconhecimento de fala (Web Speech API) ---
+const Reconhecimento = window.SpeechRecognition || window.webkitSpeechRecognition;
+const TEM_MICROFONE = Boolean(Reconhecimento);
+
+function ouvir() {
+  return new Promise((resolve) => {
+    if (!TEM_MICROFONE) return resolve(null);
+    const r = new Reconhecimento();
+    r.lang = "fr-FR";
+    r.interimResults = false;
+    r.maxAlternatives = 3;
+    let resolvido = false;
+    const fim = (val) => { if (!resolvido) { resolvido = true; resolve(val); } };
+    r.onresult = (e) => {
+      const opcoes = [];
+      for (const alt of e.results[0]) opcoes.push(alt.transcript);
+      fim(opcoes);
+    };
+    r.onerror = () => fim(null);
+    r.onend = () => fim(null);
+    r.start();
+  });
+}
+
+// --- Comparacao lexical e diff palavra por palavra ---
+function limpar(s) {
+  return s.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’]/g, " ")
+    .replace(/[^a-z0-9 ]/g, "")
+    .replace(/\s+/g, " ").trim();
+}
+
+function parecido(dito, alvo) {
+  const a = limpar(dito).split(" ").filter(Boolean);
+  const b = limpar(alvo).split(" ").filter(Boolean);
+  if (!b.length) return false;
+  const acertos = b.filter((p) => a.includes(p)).length;
+  return acertos / b.length >= 0.7;
+}
+
+function escHTML(s) {
+  return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+}
+
+function diffHTML(dito, alvo) {
+  const ditas = new Set(limpar(dito).split(" ").filter(Boolean));
+  const tokens = alvo.split(/\s+/);
+  return tokens.map((tok) => {
+    const norm = limpar(tok).split(" ").filter(Boolean);
+    const ok = norm.length === 0 || norm.every((p) => ditas.has(p));
+    return `<span class="${ok ? "w-ok" : "w-miss"}">${escHTML(tok)}</span>`;
+  }).join(" ");
+}
+
+// --- Gravacao universal (MediaRecorder -> funciona em iOS Safari, Android e Desktop) ---
+async function criarGravador() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || typeof MediaRecorder === "undefined") {
+    throw new Error("Este navegador não suporta gravação de microfone.");
+  }
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const mime = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"]
+    .find((m) => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || "";
+  const rec = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+  const partes = [];
+  rec.ondataavailable = (e) => { if (e.data && e.data.size > 0) partes.push(e.data); };
+  return {
+    iniciar: () => rec.start(),
+    parar: () => new Promise((resolve) => {
+      rec.onstop = () => {
+        stream.getTracks().forEach((t) => t.stop());
+        const blob = new Blob(partes, { type: rec.mimeType || "audio/webm" });
+        resolve(blob);
+      };
+      rec.stop();
+    }),
+  };
+}
+
+// Converte qualquer Blob gravado (webm/mp4/ogg) em WAV 16kHz mono para a API Gemini.
+async function blobParaWavBase64(blob) {
+  const buf = await blob.arrayBuffer();
+  const AC = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AC();
+  const decoded = await ctx.decodeAudioData(buf.slice(0));
+  const targetRate = 16000;
+  const length = Math.max(1, Math.ceil(decoded.duration * targetRate));
+  const off = new OfflineAudioContext(1, length, targetRate);
+  const src = off.createBufferSource();
+  src.buffer = decoded;
+  src.connect(off.destination);
+  src.start(0);
+  const rendered = await off.startRendering();
+  await ctx.close();
+
+  const samples = rendered.getChannelData(0);
+  const wav = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(wav);
+  const writeStr = (offst, s) => { for (let k = 0; k < s.length; k++) view.setUint8(offst + k, s.charCodeAt(k)); };
+  writeStr(0, "RIFF");
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeStr(8, "WAVE");
+  writeStr(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, targetRate, true);
+  view.setUint32(28, targetRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeStr(36, "data");
+  view.setUint32(40, samples.length * 2, true);
+  let pos = 44;
+  for (let k = 0; k < samples.length; k++, pos += 2) {
+    const s = Math.max(-1, Math.min(1, samples[k]));
+    view.setInt16(pos, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  const bytes = new Uint8Array(wav);
+  let bin = "";
+  const step = 0x8000;
+  for (let k = 0; k < bytes.length; k += step) {
+    bin += String.fromCharCode(...bytes.subarray(k, k + step));
+  }
+  return btoa(bin);
+}
+
+// --- Avaliacao de audio via Gemini Interactions API (gemini-3.8-flash) ---
+async function avaliarComGemini(blob, prompt) {
+  const apiKey = (localStorage.getItem(STORAGE_KEY) || "").trim();
+  if (!apiKey) {
+    abrirModalIA();
+    throw new Error("Configure sua Gemini API Key em ⚙️ IA para usar a avaliação por áudio.");
+  }
+  const model = (localStorage.getItem(STORAGE_MODEL) || MODELO_PADRAO).trim() || MODELO_PADRAO;
+  const wavBase64 = await blobParaWavBase64(blob);
+  const resp = await fetch("https://generativelanguage.googleapis.com/v1beta/interactions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-goog-api-key": apiKey,
+      "Api-Revision": "2026-05-20",
+    },
+    body: JSON.stringify({
+      model,
+      store: false,
+      input: [
+        { type: "text", text: prompt },
+        { type: "audio", data: wavBase64, mime_type: "audio/wav" },
+      ],
+    }),
+  });
+  const data = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    const msg = data?.error?.message || data?.message || ("HTTP " + resp.status);
+    throw new Error("Erro na API Gemini: " + msg);
+  }
+  if (typeof data.output_text === "string" && data.output_text.trim()) return data.output_text.trim();
+  const textos = [];
+  for (const step of data.steps || []) {
+    if (step.type === "model_output") {
+      for (const c of step.content || []) {
+        if (c.type === "text" && c.text) textos.push(c.text);
+      }
+    }
+  }
+  if (!textos.length && Array.isArray(data.outputs)) {
+    for (const o of data.outputs) if (o.type === "text" && o.text) textos.push(o.text);
+  }
+  return textos.join("\n").trim() || "Sem resposta textual da IA.";
+}
+
+// --- Caderno de Erros (localStorage) ---
+function listarErros() { return lerJSON(STORAGE_ERROS, []); }
+function temErro(fr) { return listarErros().some((e) => e.fr === fr); }
+function salvarErro(fr, nota = "", origem = "") {
+  const lista = listarErros();
+  if (!lista.some((e) => e.fr === fr)) {
+    lista.unshift({
+      fr,
+      nota,
+      origem: origem || DADOS.titulo,
+      licao_id: DADOS.id,
+      data: new Date().toISOString().slice(0, 10),
+    });
+    salvarJSON(STORAGE_ERROS, lista);
+  }
+  atualizarResumo();
+}
+function removerErro(fr) {
+  salvarJSON(STORAGE_ERROS, listarErros().filter((e) => e.fr !== fr));
+  atualizarResumo();
+}
+
+// --- Abas ---
+const estadoSessao = {
+  pronPraticadas: new Set(),
+  drillAcertos: 0,
+  drillTotal: 0,
+  drillErrosLista: [],
+  iaUsada: false,
+  ultimaAnaliseIA: "",
+};
+
+function irParaAba(nome) {
+  pararTreino();
+  audioCena.pause();
+  $("cena-play").textContent = "▶ Ouvir cena";
+  document.querySelectorAll(".aba").forEach((b) => {
+    const ativa = b.dataset.aba === nome;
+    b.classList.toggle("ativa", ativa);
+    b.setAttribute("aria-selected", String(ativa));
+  });
+  document.querySelectorAll(".painel").forEach((p) => {
+    p.classList.toggle("visivel", p.id === "painel-" + nome);
+  });
+  if (nome === "livre") atualizarResumo();
+}
+
+document.querySelectorAll(".aba").forEach((b) => b.addEventListener("click", () => irParaAba(b.dataset.aba)));
+document.querySelectorAll("[data-ir]").forEach((b) => b.addEventListener("click", () => irParaAba(b.dataset.ir)));
+
+// =========================================================================
+// ESTAGIO 1: ESCUTA LONGA
+// =========================================================================
+function fmtTempo(s) {
+  if (!Number.isFinite(s) || s < 0) return "0:00";
+  const m = Math.floor(s / 60);
+  const seg = Math.floor(s % 60);
+  return m + ":" + String(seg).padStart(2, "0");
+}
+
+let loopLinhaAtivo = false;
+let linhaSelecionada = -1;
+
+function renderCena() {
+  const cont = $("bloco-cena");
+  cont.innerHTML = "";
+  DADOS.cena.forEach((linha, idx) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "cena-linha";
+    btn.dataset.idx = String(idx);
+    btn.innerHTML = `<span class="cena-num">${String(idx + 1).padStart(2, "0")}</span><span></span>`;
+    btn.lastChild.textContent = linha;
+    btn.addEventListener("click", () => tocarLinhaCena(idx));
+    cont.appendChild(btn);
+  });
+
+  const vg = $("vocab-grid");
+  vg.innerHTML = "";
+  if (DADOS.vocabulario && DADOS.vocabulario.length) {
+    DADOS.vocabulario.forEach((v) => {
+      const d = document.createElement("div");
+      d.className = "vocab-item";
+      d.innerHTML = `<div class="vocab-fr"></div><div class="vocab-pt"></div>`;
+      d.children[0].textContent = v.fr;
+      d.children[1].textContent = v.pt;
+      vg.appendChild(d);
+    });
+  } else {
+    vg.innerHTML = `<div class="aviso">Esta lição foca no diálogo direto (sem glossário separado).</div>`;
+  }
+}
+
+function marcarLinhaAtiva(idx) {
+  document.querySelectorAll(".cena-linha").forEach((el, k) => {
+    el.classList.toggle("tocando", k === idx);
+  });
+}
+
+function tocarLinhaCena(idx) {
+  linhaSelecionada = idx;
+  marcarLinhaAtiva(idx);
+  const m = DADOS.midia;
+  if (m && m.cena_src && m.cena_tempos && m.cena_tempos[idx]) {
+    audioCena.currentTime = m.cena_tempos[idx][0];
+    audioCena.play().then(() => { $("cena-play").textContent = "⏸ Pausar"; }).catch(() => {});
+  } else {
+    falarSintese(DADOS.cena[idx], false);
+  }
+}
+
+$("cena-play").addEventListener("click", () => {
+  if (DADOS.midia && DADOS.midia.cena_src) {
+    if (audioCena.paused) {
+      audioCena.play().then(() => { $("cena-play").textContent = "⏸ Pausar"; }).catch(() => {});
+    } else {
+      audioCena.pause();
+      $("cena-play").textContent = "▶ Ouvir cena";
+    }
+  } else {
+    falarSintese(DADOS.cena.join(" "), false);
+  }
+});
+
+$("cena-voltar").addEventListener("click", () => {
+  audioCena.currentTime = Math.max(0, audioCena.currentTime - 5);
+});
+$("cena-avancar").addEventListener("click", () => {
+  const dur = audioCena.duration || (DADOS.midia ? DADOS.midia.cena_duracao : 0);
+  audioCena.currentTime = Math.min(dur || 0, audioCena.currentTime + 5);
+});
+$("cena-seek").addEventListener("input", (e) => {
+  const dur = audioCena.duration || (DADOS.midia ? DADOS.midia.cena_duracao : 0);
+  if (dur > 0) audioCena.currentTime = (Number(e.target.value) / 100) * dur;
+});
+$("cena-loop-linha").addEventListener("click", () => {
+  loopLinhaAtivo = !loopLinhaAtivo;
+  $("cena-loop-linha").textContent = "🔁 Repetir frase: " + (loopLinhaAtivo ? "sim" : "não");
+});
+
+document.querySelectorAll("[data-vel]").forEach((b) => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll("[data-vel]").forEach((x) => x.classList.remove("ativa"));
+    b.classList.add("ativa");
+    audioCena.playbackRate = Number(b.dataset.vel);
+  });
+});
+
+document.querySelectorAll("[data-modo]").forEach((b) => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll("[data-modo]").forEach((x) => x.classList.remove("ativa"));
+    b.classList.add("ativa");
+    const modo = b.dataset.modo;
+    $("bloco-oculto").classList.toggle("oculto", modo !== "oculto");
+    $("bloco-cena").classList.toggle("oculto", modo !== "fr");
+    $("bloco-vocab").classList.toggle("oculto", modo !== "vocab");
+  });
+});
+
+audioCena.addEventListener("loadedmetadata", () => {
+  $("cena-total").textContent = fmtTempo(audioCena.duration);
+});
+audioCena.addEventListener("timeupdate", () => {
+  const t = audioCena.currentTime;
+  const dur = audioCena.duration || (DADOS.midia ? DADOS.midia.cena_duracao : 0);
+  $("cena-atual").textContent = fmtTempo(t);
+  if (dur > 0) {
+    $("cena-total").textContent = fmtTempo(dur);
+    $("cena-seek").value = String((t / dur) * 100);
+  }
+  const tempos = DADOS.midia && DADOS.midia.cena_tempos;
+  if (tempos) {
+    if (loopLinhaAtivo && linhaSelecionada >= 0 && tempos[linhaSelecionada]) {
+      if (t >= tempos[linhaSelecionada][1] + 0.12) {
+        audioCena.currentTime = tempos[linhaSelecionada][0];
+        return;
+      }
+    }
+    const idx = tempos.findIndex((par) => t >= par[0] - 0.05 && t <= par[1] + 0.35);
+    if (idx >= 0) {
+      linhaSelecionada = idx;
+      marcarLinhaAtiva(idx);
+    }
+  }
+});
+audioCena.addEventListener("ended", () => { $("cena-play").textContent = "▶ Ouvir novamente"; });
+
+// =========================================================================
+// ESTAGIO 2: FALAS PARA PRONUNCIAR (SHADOWING & A/B)
+// =========================================================================
+let pronIdx = 0;
+let pronGravador = null;
+let pronBlob = null;
+let pronAudioUrl = null;
+
+function renderPronuncia() {
+  const lista = DADOS.pronuncia;
+  if (!lista.length) return;
+  const item = lista[pronIdx];
+  $("pron-passo").textContent = (pronIdx + 1) + " / " + lista.length;
+  $("pron-fr").textContent = item.fr;
+  $("pron-pt").textContent = item.pt || "";
+  $("pron-pt").classList.add("oculto");
+  $("pron-toggle-pt").classList.toggle("oculto", !item.pt);
+  $("pron-toggle-pt").textContent = "Traduzir";
+  if (item.dica) {
+    $("pron-dica").textContent = "💡 " + item.dica;
+    $("pron-dica").classList.remove("oculto");
+  } else {
+    $("pron-dica").classList.add("oculto");
+  }
+
+  $("pron-salvar-erro").textContent = temErro(item.fr) ? "🔖 Salvo nos erros" : "🔖 Salvar erro";
+  $("pron-pos-gravacao").classList.add("oculto");
+  $("pron-diff").classList.add("oculto");
+  $("pron-ia-out").classList.add("oculto");
+  $("pron-ia-out").classList.remove("erro");
+  $("pron-aviso").textContent = TEM_MICROFONE
+    ? "Ouça a frase nativa, grave sua voz para comparar A/B, ou use Checar palavras."
+    : "Este navegador não reconhece fala automaticamente — use Gravar + Comparar A/B ou IA.";
+  $("pron-checar-palavras").classList.toggle("oculto", !TEM_MICROFONE);
+
+  pronBlob = null;
+  if (pronAudioUrl) { URL.revokeObjectURL(pronAudioUrl); pronAudioUrl = null; }
+  $("pron-ant").disabled = pronIdx === 0;
+  $("pron-prox").textContent = pronIdx === lista.length - 1 ? "Ir para o Drill →" : "Próxima fala →";
+}
+
+$("pron-ouvir").addEventListener("click", () => falar(DADOS.pronuncia[pronIdx].fr, false));
+$("pron-lento").addEventListener("click", () => falar(DADOS.pronuncia[pronIdx].fr, true));
+$("pron-toggle-pt").addEventListener("click", () => {
+  const oculto = $("pron-pt").classList.toggle("oculto");
+  $("pron-toggle-pt").textContent = oculto ? "Traduzir" : "Ocultar tradução";
+});
+$("pron-salvar-erro").addEventListener("click", () => {
+  const item = DADOS.pronuncia[pronIdx];
+  if (temErro(item.fr)) removerErro(item.fr);
+  else salvarErro(item.fr, item.dica || item.pt || "Pronúncia / shadowing", DADOS.titulo);
+  $("pron-salvar-erro").textContent = temErro(item.fr) ? "🔖 Salvo nos erros" : "🔖 Salvar erro";
+});
+
+$("pron-gravar").addEventListener("click", async () => {
+  const btn = $("pron-gravar");
+  if (!pronGravador) {
+    pararTreino();
+    try {
+      pronGravador = await criarGravador();
+      pronGravador.iniciar();
+      btn.textContent = "⏹ Parar gravação";
+      btn.classList.add("btn-gravando");
+    } catch (e) {
+      $("pron-aviso").textContent = e.message;
+    }
+  } else {
+    btn.disabled = true;
+    pronBlob = await pronGravador.parar();
+    pronGravador = null;
+    btn.disabled = false;
+    btn.textContent = "🎙️ Gravar novamente";
+    btn.classList.remove("btn-gravando");
+    if (pronAudioUrl) URL.revokeObjectURL(pronAudioUrl);
+    pronAudioUrl = URL.createObjectURL(pronBlob);
+    $("pron-pos-gravacao").classList.remove("oculto");
+    estadoSessao.pronPraticadas.add(pronIdx);
+  }
+});
+
+function tocarMinhaVoz(url) {
+  return new Promise((resolve) => {
+    const a = new Audio(url);
+    a.onended = resolve;
+    a.onerror = resolve;
+    a.play().catch(resolve);
+  });
+}
+
+$("pron-ouvir-minha").addEventListener("click", () => {
+  if (pronAudioUrl) tocarMinhaVoz(pronAudioUrl);
+});
+
+$("pron-ab").addEventListener("click", async () => {
+  if (!pronAudioUrl) return;
+  await falar(DADOS.pronuncia[pronIdx].fr, false);
+  await new Promise((r) => setTimeout(r, 380));
+  await tocarMinhaVoz(pronAudioUrl);
+});
+
+$("pron-checar-palavras").addEventListener("click", async () => {
+  const item = DADOS.pronuncia[pronIdx];
+  const btn = $("pron-checar-palavras");
+  btn.disabled = true;
+  btn.textContent = "🎧 Ouvindo…";
+  const opcoes = await ouvir();
+  btn.disabled = false;
+  btn.textContent = "🔤 Checar palavras";
+  const box = $("pron-diff");
+  box.classList.remove("oculto");
+  if (!opcoes || !opcoes.length) {
+    box.textContent = "Não captou fala. Tente falar um pouco mais perto do microfone.";
+    return;
+  }
+  const melhor = opcoes.find((o) => parecido(o, item.fr)) || opcoes[0];
+  const ok = parecido(melhor, item.fr);
+  box.innerHTML =
+    `<div style="margin-bottom:.35rem;color:var(--suave)">Ouvido: <b style="color:var(--tinta)">${escHTML(melhor)}</b></div>` +
+    `<div>${diffHTML(melhor, item.fr)}</div>` +
+    `<div class="aviso" style="margin-top:.4rem">${ok ? "Palavras principais reconhecidas (lembre: reconhecedor perdoa sotaque)." : "Algumas palavras faltaram — ouça devagar e tente de novo."}</div>`;
+  estadoSessao.pronPraticadas.add(pronIdx);
+});
+
+$("pron-ia").addEventListener("click", async () => {
+  if (!pronBlob) return;
+  const item = DADOS.pronuncia[pronIdx];
+  const out = $("pron-ia-out");
+  out.classList.remove("oculto", "erro");
+  out.textContent = "Analisando sua pronúncia com Gemini…";
+  $("pron-ia").disabled = true;
+  try {
+    const prompt = [
+      "Você é um tutor objetivo de pronúncia de francês para um falante brasileiro.",
+      `Frase-alvo: "${item.fr}"`,
+      "Ouça o áudio enviado e responda em português do Brasil em no máximo 4 linhas curtas:",
+      "1. Inteligibilidade geral (clara / compreensível com esforço / difícil).",
+      "2. Até 2 pontos fonéticos específicos que precisam de ajuste (ex.: /y/ vs /u/, /ø/, vogais nasais, liaison, consoantes finais mudas, ritmo).",
+      "3. Uma dica prática curta de articulação para a próxima tentativa.",
+      "Não elogie em excesso e não invente erros se estiver bom.",
+    ].join("\n");
+    const txt = await avaliarComGemini(pronBlob, prompt);
+    out.textContent = txt;
+    estadoSessao.iaUsada = true;
+    estadoSessao.ultimaAnaliseIA = txt;
+  } catch (e) {
+    out.classList.add("erro");
+    out.textContent = e.message;
+  } finally {
+    $("pron-ia").disabled = false;
+  }
+});
+
+$("pron-ant").addEventListener("click", () => { if (pronIdx > 0) { pronIdx -= 1; renderPronuncia(); } });
+$("pron-prox").addEventListener("click", () => {
+  if (pronIdx < DADOS.pronuncia.length - 1) { pronIdx += 1; renderPronuncia(); }
+  else irParaAba("drill");
+});
+
+// =========================================================================
+// ESTAGIO 3: DRILL (SEMAFORO & RESPOSTA ATIVA)
+// =========================================================================
+let i = -1;
+let estado = "inicio";
+
+function limparTelaDrill() {
+  corpo.classList.remove("flash-acerto", "flash-erro");
+  $("drill-veredito").classList.add("oculto");
+  $("drill-veredito").classList.remove("ok", "err");
+  $("drill-autoavaliacao").classList.add("oculto");
+  $("ouvido").textContent = "";
+  $("certo").textContent = "";
+  $("drill-diff").innerHTML = "";
+  $("nota").textContent = "";
+  $("nota").classList.add("oculto");
+  $("traducao").textContent = "";
+}
+
+function atualizarPlacar() {
+  $("drill-placar").textContent = estadoSessao.drillTotal
+    ? `Placar: ${estadoSessao.drillAcertos} / ${estadoSessao.drillTotal}`
+    : "";
+}
+
+async function proximo() {
+  limparTelaDrill();
+  i += 1;
+  if (i >= DADOS.itens.length) return terminar();
+
+  const item = DADOS.itens[i];
+  $("drill-passo").textContent = (i + 1) + " / " + DADOS.itens.length;
+  $("drill-tipo").textContent = item.tipo === "semaforo" ? "🚦 Semáforo" : "💬 Resposta ativa";
+  $("drill-tipo").classList.toggle("badge-semaforo", item.tipo === "semaforo");
+  $("rotulo").textContent = "Répondez à voix haute";
+  $("frase").textContent = item.pergunta;
+  $("agir").textContent = TEM_MICROFONE ? "🎙️ Parler" : "Voir la réponse";
+  estado = "pergunta";
+  await falar(item.pergunta, false);
+}
+
+async function responder() {
+  const item = DADOS.itens[i];
+  if (!TEM_MICROFONE) return revelar(item, null, null);
+
+  $("rotulo").textContent = "J'écoute…";
+  $("agir").disabled = true;
+  const opcoes = await ouvir();
+  $("agir").disabled = false;
+
+  if (!opcoes) return revelar(item, null, null);
+  const acertou = opcoes.some((o) => parecido(o, item.resposta));
+  const melhor = opcoes.find((o) => parecido(o, item.resposta)) || opcoes[0];
+  revelar(item, melhor, acertou);
+}
+
+async function revelar(item, dito, acertou) {
+  estado = "resposta";
+  const box = $("drill-veredito");
+  box.classList.remove("oculto", "ok", "err");
+  if (dito) {
+    $("ouvido").innerHTML = "Vous avez dit : <b style='color:var(--tinta)'>" + escHTML(dito) + "</b>";
+    $("drill-diff").innerHTML = diffHTML(dito, item.resposta);
+  }
+  if (acertou === true) {
+    corpo.classList.add("flash-acerto");
+    box.classList.add("ok");
+    estadoSessao.drillAcertos += 1;
+    estadoSessao.drillTotal += 1;
+  } else if (acertou === false) {
+    corpo.classList.add("flash-erro");
+    box.classList.add("err");
+    estadoSessao.drillTotal += 1;
+    estadoSessao.drillErrosLista.push(item.resposta);
+    salvarErro(item.resposta, item.nota || item.pergunta, DADOS.titulo);
+  } else {
+    $("drill-autoavaliacao").classList.remove("oculto");
+  }
+  atualizarPlacar();
+
+  $("rotulo").textContent = acertou === true ? "C'est ça" : "On dit";
+  $("certo").textContent = item.resposta;
+  if (item.nota) {
+    $("nota").textContent = item.nota;
+    $("nota").classList.remove("oculto");
+  }
+  $("agir").textContent = "Suivant →";
+
+  await falar(item.resposta, false);
+  await falar(item.resposta, true);
+}
+
+$("drill-acertei").addEventListener("click", () => {
+  $("drill-autoavaliacao").classList.add("oculto");
+  estadoSessao.drillAcertos += 1;
+  estadoSessao.drillTotal += 1;
+  $("drill-veredito").classList.add("ok");
+  atualizarPlacar();
+});
+$("drill-errei").addEventListener("click", () => {
+  $("drill-autoavaliacao").classList.add("oculto");
+  const item = DADOS.itens[i];
+  estadoSessao.drillTotal += 1;
+  estadoSessao.drillErrosLista.push(item.resposta);
+  salvarErro(item.resposta, item.nota || item.pergunta, DADOS.titulo);
+  $("drill-veredito").classList.add("err");
+  atualizarPlacar();
+});
+
+function terminar() {
+  limparTelaDrill();
+  $("drill-passo").textContent = "Concluído";
+  $("rotulo").textContent = "Terminé";
+  $("frase").textContent = "C'est tout pour le drill.";
+  $("traducao").textContent = estadoSessao.drillTotal
+    ? `Você acertou ${estadoSessao.drillAcertos} de ${estadoSessao.drillTotal}. Agora teste a fala livre na aba 4.`
+    : "Reescute o MP3 caminhando — é lá que fixa.";
+  $("agir").textContent = "Recommencer";
+  estado = "fim";
+}
+
+$("agir").addEventListener("click", () => {
+  if (estado === "inicio" || estado === "resposta") return proximo();
+  if (estado === "pergunta") return responder();
+  if (estado === "fim") {
+    i = -1;
+    estadoSessao.drillAcertos = 0;
+    estadoSessao.drillTotal = 0;
+    return proximo();
+  }
+});
+$("repetir").addEventListener("click", () => {
+  if (estado === "resposta" && DADOS.itens[i]) falar(DADOS.itens[i].resposta, true);
+  else if (DADOS.itens[i]) falar(DADOS.itens[i].pergunta, true);
+  else if (DADOS.cena.length) falar(DADOS.cena[0], false);
+});
+
+// =========================================================================
+// ESTAGIO 4: FALA LIVRE & RESUMO NOTION
+// =========================================================================
+let livreGravador = null;
+let livreBlob = null;
+let livreUrl = null;
+let livreInterval = null;
+let livreSegundos = 0;
+
+function renderFalaLivre() {
+  const fl = DADOS.fala_livre || {
+    enunciado: "Sem olhar o texto, reconte a situação desta lição em francês com suas próprias palavras (30 a 60 segundos).",
+    passos: ["Apresente o contexto em 1 ou 2 frases.", "Use pelo menos 3 expressões da lição.", "Inclua uma pergunta ou pedido de confirmação."],
+    criterio: "Mensagem compreensível e objetivo comunicado sem ler.",
+    duracao_alvo_s: 60,
+  };
+  $("livre-enunciado").textContent = fl.enunciado;
+  const ol = $("livre-passos");
+  ol.innerHTML = "";
+  (fl.passos || []).forEach((p) => {
+    const li = document.createElement("li");
+    li.textContent = p;
+    ol.appendChild(li);
+  });
+  if (fl.criterio) {
+    $("livre-criterio").textContent = "Critério da missão: " + fl.criterio;
+    $("livre-criterio").classList.remove("oculto");
+  }
+}
+
+$("livre-gravar").addEventListener("click", async () => {
+  const btn = $("livre-gravar");
+  if (!livreGravador) {
+    pararTreino();
+    audioCena.pause();
+    try {
+      livreGravador = await criarGravador();
+      livreGravador.iniciar();
+      livreSegundos = 0;
+      $("livre-timer").textContent = "00:00";
+      livreInterval = setInterval(() => {
+        livreSegundos += 1;
+        $("livre-timer").textContent =
+          String(Math.floor(livreSegundos / 60)).padStart(2, "0") + ":" +
+          String(livreSegundos % 60).padStart(2, "0");
+        if (livreSegundos >= 180 && livreGravador) btn.click();
+      }, 1000);
+      btn.textContent = "⏹ Parar gravação";
+      btn.classList.add("btn-gravando");
+    } catch (e) {
+      $("livre-ia-out").classList.remove("oculto");
+      $("livre-ia-out").classList.add("erro");
+      $("livre-ia-out").textContent = e.message;
+    }
+  } else {
+    clearInterval(livreInterval);
+    btn.disabled = true;
+    livreBlob = await livreGravador.parar();
+    livreGravador = null;
+    btn.disabled = false;
+    btn.textContent = "🎙️ Gravar nova tentativa";
+    btn.classList.remove("btn-gravando");
+    if (livreUrl) URL.revokeObjectURL(livreUrl);
+    livreUrl = URL.createObjectURL(livreBlob);
+    $("livre-pos").classList.remove("oculto");
+  }
+});
+
+$("livre-ouvir").addEventListener("click", () => { if (livreUrl) tocarMinhaVoz(livreUrl); });
+
+$("livre-ia").addEventListener("click", async () => {
+  if (!livreBlob) return;
+  const out = $("livre-ia-out");
+  out.classList.remove("oculto", "erro");
+  out.textContent = "Avaliando sua fala livre na rubrica do curso…";
+  $("livre-ia").disabled = true;
+  try {
+    const fl = DADOS.fala_livre || {};
+    const prompt = [
+      "Você é um tutor de francês prático (nível A2/A2+) avaliando a gravação de fala livre de um falante brasileiro.",
+      `Lição: ${DADOS.titulo} (${DADOS.nivel})`,
+      `Missão: ${fl.enunciado || "Recontar a situação da lição."}`,
+      "Responda em português do Brasil, de forma direta e organizada em 4 blocos curtos:",
+      "1. O que funcionou bem.",
+      "2. Até 3 ajustes prioritários (formato: frase dita -> forma mais natural + por quê em 1 linha).",
+      "3. Pronúncia e Clareza ouvidas no áudio (aponte sons concretos como /y/, /u/, nasais, finais mudos ou ritmo).",
+      "4. Sugestão na rubrica (Com modelo / Com pistas / Sem ajuda) para Realização da tarefa, Vocabulário e Clareza.",
+    ].join("\n");
+    const txt = await avaliarComGemini(livreBlob, prompt);
+    out.textContent = txt;
+    estadoSessao.iaUsada = true;
+    estadoSessao.ultimaAnaliseIA = txt;
+    atualizarResumo();
+  } catch (e) {
+    out.classList.add("erro");
+    out.textContent = e.message;
+  } finally {
+    $("livre-ia").disabled = false;
+  }
+});
+
+function atualizarResumo() {
+  const prog = lerJSON(STORAGE_PROG, {});
+  const info = prog[DADOS.id];
+  const errosLicao = listarErros().filter((e) => e.licao_id === DADOS.id);
+  $("resumo-stats").textContent =
+    `Falas praticadas: ${estadoSessao.pronPraticadas.size}/${DADOS.pronuncia.length} · ` +
+    `Drill: ${estadoSessao.drillAcertos}/${estadoSessao.drillTotal || DADOS.itens.length} · ` +
+    `Erros salvos nesta lição: ${errosLicao.length}` +
+    (info ? ` · Praticada ${info.sessoes}× (última: ${info.ultima})` : "");
+  $("btn-marcar-feita").textContent = info ? "✓ Praticada (" + info.sessoes + "×) — registrar +" : "✓ Marcar lição praticada";
+}
+
+$("btn-marcar-feita").addEventListener("click", () => {
+  const prog = lerJSON(STORAGE_PROG, {});
+  const atual = prog[DADOS.id] || { sessoes: 0 };
+  prog[DADOS.id] = {
+    sessoes: atual.sessoes + 1,
+    ultima: new Date().toISOString().slice(0, 10),
+    titulo: DADOS.titulo,
+  };
+  salvarJSON(STORAGE_PROG, prog);
+  atualizarResumo();
+  $("copia-feedback").textContent = "Progresso salvo neste dispositivo.";
+});
+
+$("btn-copiar-notion").addEventListener("click", async () => {
+  const hoje = new Date().toISOString().slice(0, 10);
+  const erros = listarErros().filter((e) => e.licao_id === DADOS.id).map((e) => "- " + e.fr + (e.nota ? " (" + e.nota + ")" : ""));
+  const texto = [
+    `Sessão francais-drill — ${DADOS.titulo} (${DADOS.nivel})`,
+    `Data: ${hoje}`,
+    `Pronúncia/Shadowing: ${estadoSessao.pronPraticadas.size}/${DADOS.pronuncia.length} falas`,
+    `Drill (palavras): ${estadoSessao.drillAcertos}/${estadoSessao.drillTotal || DADOS.itens.length}`,
+    `Clareza (pronúncia): ${estadoSessao.iaUsada ? "Avaliada por áudio (IA)" : "Não avaliado (reconhecimento de palavras não comprova pronúncia)"}`,
+    erros.length ? "Caderno de erros:\n" + erros.join("\n") : "Caderno de erros: nenhum item marcado.",
+  ].join("\n");
+  try {
+    await navigator.clipboard.writeText(texto);
+    $("copia-feedback").textContent = "Resumo copiado! Agora é só colar no Registro de prática do Notion.";
+  } catch {
+    $("copia-feedback").textContent = texto;
+  }
+});
+
+// --- Modal IA ---
+function atualizarBotaoIA() {
+  const tem = Boolean((localStorage.getItem(STORAGE_KEY) || "").trim());
+  $("btn-config-ia").classList.toggle("ativo", tem);
+  $("btn-config-ia").textContent = tem ? "✨ IA ativa" : "⚙️ IA";
+}
+function abrirModalIA() {
+  $("ia-key").value = localStorage.getItem(STORAGE_KEY) || "";
+  $("ia-model").value = localStorage.getItem(STORAGE_MODEL) || MODELO_PADRAO;
+  $("modal-ia").showModal();
+}
+$("btn-config-ia").addEventListener("click", abrirModalIA);
+$("ia-salvar").addEventListener("click", () => {
+  localStorage.setItem(STORAGE_KEY, $("ia-key").value.trim());
+  localStorage.setItem(STORAGE_MODEL, $("ia-model").value.trim() || MODELO_PADRAO);
+  atualizarBotaoIA();
+  $("modal-ia").close();
+});
+$("ia-limpar").addEventListener("click", () => {
+  localStorage.removeItem(STORAGE_KEY);
+  $("ia-key").value = "";
+  atualizarBotaoIA();
+  $("modal-ia").close();
+});
+$("ia-fechar").addEventListener("click", () => $("modal-ia").close());
+
+// --- Inicializacao ---
+$("meta-sub").textContent = `${DADOS.nivel} · ${DADOS.bloco}`;
+$("foco-texto").textContent = DADOS.foco || "Ouça o áudio completo e depois pratique a pronúncia e as respostas em voz alta.";
+if (DADOS.midia && DADOS.midia.cena_duracao) {
+  $("cena-total").textContent = fmtTempo(DADOS.midia.cena_duracao);
+}
+renderCena();
+renderPronuncia();
+renderFalaLivre();
+atualizarBotaoIA();
+atualizarResumo();
+
+$("frase").textContent = DADOS.titulo;
+$("traducao").textContent = DADOS.itens.length + " itens para responder em voz alta.";
+if (!TEM_MICROFONE) {
+  $("aviso").textContent =
+    "Este navegador não reconhece fala. O app funciona, mas quem julga a resposta no Drill é você — " +
+    "para o veredito automático de palavras, abra no Chrome, ou use Gravar + A/B / IA na aba Pronúncia.";
+} else {
+  $("aviso").textContent =
+    "O verde no Drill diz que as palavras certas saíram — não comprova pronúncia. Para som e sotaque, use A/B ou IA na aba Pronúncia.";
+}
+
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
+}
+</script>
+</body>
+</html>

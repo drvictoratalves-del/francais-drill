@@ -2,40 +2,246 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#12100e">
+<link rel="manifest" href="./manifest.webmanifest">
 <title>Drill de français</title>
 <style>
-  :root { --fundo:#12100e; --tinta:#f5f1ea; --suave:#8a8178; }
+  :root {
+    --fundo: #12100e; --superficie: #1b1815; --borda: rgba(245,241,234,.14);
+    --borda-forte: rgba(245,241,234,.36); --tinta: #f5f1ea; --suave: #a3998e;
+    --acento: #d8a974; --verde: #7ee2ab;
+    --serif: "Georgia","Iowan Old Style",serif;
+    --sans: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
   * { box-sizing: border-box; }
-  body { margin:0; min-height:100vh; background:var(--fundo); color:var(--tinta);
-         font-family:"Georgia","Iowan Old Style",serif;
-         display:flex; flex-direction:column; justify-content:center;
-         padding:2rem 1.5rem; max-width:32rem; margin-inline:auto; }
-  h1 { font-size:1.6rem; font-weight:400; margin:0 0 .35rem; }
-  p.sub { color:var(--suave); margin:0 0 2.5rem; font-size:.95rem; line-height:1.5; }
-  a.licao { display:block; text-decoration:none; color:var(--tinta);
-            border:1px solid rgba(245,241,234,.18); border-radius:.6rem;
-            padding:1rem 1.1rem; margin-bottom:.8rem; }
-  a.licao:hover { border-color: rgba(245,241,234,.45); }
-  .n { color:var(--suave); font-size:.78rem; letter-spacing:.09em; }
-  .t { font-size:1.15rem; margin-top:.15rem; }
-  footer { color:var(--suave); font-size:.8rem; margin-top:2.2rem; line-height:1.55; }
+  body {
+    margin: 0; min-height: 100svh; background: var(--fundo); color: var(--tinta);
+    font-family: var(--sans); padding: 1.8rem 1.15rem 3.5rem;
+    max-width: 44rem; margin-inline: auto; line-height: 1.5;
+  }
+  header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.6rem; }
+  h1 { font-family: var(--serif); font-size: 1.75rem; font-weight: 400; margin: 0 0 .3rem; }
+  p.sub { color: var(--suave); margin: 0; font-size: .92rem; }
+  .btn {
+    background: var(--superficie); color: var(--tinta); border: 1px solid var(--borda);
+    border-radius: 8px; padding: .45rem .8rem; font-size: .82rem; cursor: pointer; min-height: 38px;
+  }
+  .btn:hover { border-color: var(--borda-forte); }
+  .btn.ativo { border-color: var(--acento); color: var(--acento); }
+  .grupo { margin-top: 1.75rem; }
+  .grupo h2 {
+    font-size: .78rem; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--acento); margin: 0 0 .75rem; font-weight: 600;
+  }
+  a.licao {
+    display: block; text-decoration: none; color: var(--tinta);
+    background: var(--superficie); border: 1px solid var(--borda);
+    border-radius: 10px; padding: .95rem 1.05rem; margin-bottom: .65rem;
+    transition: border-color 140ms ease;
+  }
+  a.licao:hover { border-color: var(--borda-forte); }
+  .n {
+    display: flex; justify-content: space-between; align-items: center; gap: .5rem;
+    color: var(--suave); font-size: .75rem; letter-spacing: .07em;
+  }
+  .selo-prog { color: var(--verde); font-weight: 600; letter-spacing: 0; }
+  .t { font-family: var(--serif); font-size: 1.14rem; margin-top: .22rem; }
+  .foco { color: var(--suave); font-size: .84rem; margin-top: .25rem; }
+
+  .caderno {
+    margin-top: 2rem; background: var(--superficie); border: 1px solid var(--borda);
+    border-radius: 12px; padding: 1.1rem;
+  }
+  .erro-item {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: .75rem;
+    padding: .65rem 0; border-top: 1px solid var(--borda);
+  }
+  .erro-item:first-of-type { border-top: none; }
+  .erro-fr { font-family: var(--serif); font-size: 1rem; }
+  .erro-meta { font-size: .8rem; color: var(--suave); margin-top: .15rem; }
+
+  footer { color: var(--suave); font-size: .8rem; margin-top: 2.2rem; line-height: 1.55; }
+  dialog {
+    background: var(--superficie); color: var(--tinta);
+    border: 1px solid var(--borda-forte); border-radius: 14px;
+    padding: 1.25rem; max-width: 28rem; width: calc(100% - 2rem); margin: auto;
+  }
+  dialog::backdrop { background: rgba(0,0,0,.72); }
+  .campo { display: flex; flex-direction: column; gap: .35rem; margin-top: .85rem; }
+  .campo label { font-size: .82rem; color: var(--suave); }
+  .campo input {
+    background: var(--fundo); color: var(--tinta);
+    border: 1px solid var(--borda-forte); border-radius: 8px;
+    padding: .65rem .75rem; font-size: .92rem;
+  }
+  .acoes { display: flex; gap: .5rem; margin-top: 1rem; }
 </style>
 </head>
 <body>
-  <h1>Drill de français</h1>
-  <p class="sub">Répondez à voix haute. Le micro écoute, l’écran répond.</p>
+  <header>
+    <div>
+      <h1>Drill de français</h1>
+      <p class="sub">Áudio longo narrado, falas para pronunciar (A/B + IA) e resposta em voz alta.</p>
+    </div>
+    <button class="btn" id="btn-ia" type="button">⚙️ IA</button>
+  </header>
 
-  <a class="licao" href="./frances_01_combinar-de-sair.html">
-    <div class="n">01 · A2</div>
-    <div class="t">Combinar de sair</div>
-  </a>
-  <a class="licao" href="./frances_05_discordar-sem-brigar.html">
-    <div class="n">05 · B1+</div>
-    <div class="t">Discordar sem brigar</div>
-  </a>
+  <section class="grupo">
+    <h2>1 · Sobrevivência e Chegada (01–05)</h2>
+    <a class="licao" href="./aula-01_conhecer-alguem-durante-uma-viagem.html" data-id="aula-01">
+      <div class="n"><span>AULA-01 · A1 → A2 · 🎧 2 min 05 s</span><span class="selo-prog"></span></div>
+      <div class="t">Aula 01 — Conhecer alguém durante uma viagem</div>
+      <div class="foco">Apresentação, perguntas de retorno, être/habiter/venir e contraste depuis vs pendant</div>
+    </a>
+    <a class="licao" href="./aula-02_no-cafe-pedir-e-esclarecer.html" data-id="aula-02">
+      <div class="n"><span>AULA-02 · A1 → A2 · 🎧 1 min 38 s</span><span class="selo-prog"></span></div>
+      <div class="t">Aula 02 — No café — pedir e esclarecer</div>
+      <div class="foco">Pedidos corteses (je voudrais), sur place / à emporter, valores e pagamento por cartão</div>
+    </a>
+    <a class="licao" href="./aula-03_no-hotel-confirmar-a-reserva.html" data-id="aula-03">
+      <div class="n"><span>AULA-03 · A1 → A2 · 🎧 1 min 31 s</span><span class="selo-prog"></span></div>
+      <div class="t">Aula 03 — No hotel — confirmar a reserva</div>
+      <div class="foco">Reserva de hotel, horários completos, pedido de repetição e prolongamento de estadia</div>
+    </a>
+    <a class="licao" href="./aula-04_na-cidade-pedir-e-confirmar-um-caminho.html" data-id="aula-04">
+      <div class="n"><span>AULA-04 · A1 → A2 · 🎧 1 min 30 s</span><span class="selo-prog"></span></div>
+      <div class="t">Aula 04 — Na cidade — pedir e confirmar um caminho</div>
+      <div class="foco">Pedir e confirmar direções na cidade, imperativo (allez, tournez, continuez) e imparfait vs passé composé</div>
+    </a>
+    <a class="licao" href="./aula-05_transportes-destino-horario-e-bilhete.html" data-id="aula-05">
+      <div class="n"><span>AULA-05 · A1 → A2 · 🎧 1 min 33 s</span><span class="selo-prog"></span></div>
+      <div class="t">Aula 05 — Transportes — destino, horário e bilhete</div>
+      <div class="foco">Bilhete de trem (aller simple / aller-retour), horários, plataformas, devoir e partir</div>
+    </a>
+  </section>
 
-  <footer>O verde diz que as palavras certas saíram — não que a pronúncia estava certa.
-  Reconhecedor de fala é feito para perdoar sotaque.</footer>
+  <section class="grupo">
+    <h2>Leituras de Imersão</h2>
+    <a class="licao" href="./leitura-01_une-journee-en-ville-leitura-em-30-linhas.html" data-id="leitura-01">
+      <div class="n"><span>LEITURA-01 · A1 → A2 · 🎧 2 min 29 s</span><span class="selo-prog"></span></div>
+      <div class="t">Une journée en ville — leitura em 30 linhas</div>
+      <div class="foco">Escuta longa contínua (30 frases), microditado, pronome en e reconto no passado/futuro</div>
+    </a>
+  </section>
+
+  <section class="grupo">
+    <h2>Drills extras</h2>
+    <a class="licao" href="./frances_01_combinar-de-sair.html" data-id="01">
+      <div class="n"><span>01 · A2 · 🎧 21 s</span><span class="selo-prog"></span></div>
+      <div class="t">Combinar de sair</div>
+      <div class="foco">Entrada da rampa: convite informal, contração au e rien de + adjetivo</div>
+    </a>
+    <a class="licao" href="./frances_05_discordar-sem-brigar.html" data-id="05">
+      <div class="n"><span>05 · B1+ · 🎧 22 s</span><span class="selo-prog"></span></div>
+      <div class="t">Discordar sem brigar</div>
+      <div class="foco">Subjuntivo com bien que / ne pas être sûr que e clivada ce qui… c&#x27;est</div>
+    </a>
+  </section>
+
+  <section class="caderno" id="sec-erros">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+      <h2 style="margin:0;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--acento)">
+        🔁 Caderno de Erros (local)
+      </h2>
+      <span id="erros-count" style="font-size:.78rem;color:var(--suave)"></span>
+    </div>
+    <div id="erros-lista"></div>
+  </section>
+
+  <footer>
+    O verde no Drill diz que as palavras certas saíram — não comprova pronúncia.
+    Para treinar som, ritmo e sotaque, use <b>Gravar + Comparar A/B</b> ou a avaliação por áudio (IA) em cada lição.
+  </footer>
+
+  <dialog id="modal-ia">
+    <h3 style="font-family:var(--serif);font-weight:400;margin:0 0 .4rem">Avaliação de pronúncia com IA</h3>
+    <p style="font-size:.82rem;color:var(--suave);margin:0">
+      Chave Gemini salva apenas no <code>localStorage</code> deste navegador (<code>store: false</code>).
+    </p>
+    <div class="campo">
+      <label for="ia-key">Gemini API Key</label>
+      <input type="password" id="ia-key" placeholder="AIza..." autocomplete="off">
+    </div>
+    <div class="campo">
+      <label for="ia-model">Modelo</label>
+      <input type="text" id="ia-model" value="gemini-3.8-flash">
+    </div>
+    <div class="acoes">
+      <button class="btn" style="flex:1;background:var(--tinta);color:var(--fundo);font-weight:600" id="ia-salvar" type="button">Salvar</button>
+      <button class="btn" id="ia-limpar" type="button">Remover</button>
+      <button class="btn" id="ia-fechar" type="button">Fechar</button>
+    </div>
+  </dialog>
+
+<script>
+const STORAGE_PROG = "francais_drill_progresso_v1";
+const STORAGE_ERROS = "francais_drill_erros_v1";
+const STORAGE_KEY = "francais_drill_gemini_key";
+const STORAGE_MODEL = "francais_drill_gemini_model";
+
+function ler(k, fb) { try { return JSON.parse(localStorage.getItem(k) || "null") ?? fb; } catch { return fb; } }
+
+const prog = ler(STORAGE_PROG, {});
+document.querySelectorAll("a.licao").forEach((a) => {
+  const info = prog[a.dataset.id];
+  if (info) a.querySelector(".selo-prog").textContent = "✓ " + info.sessoes + "×";
+});
+
+function renderErros() {
+  const lista = ler(STORAGE_ERROS, []);
+  document.getElementById("erros-count").textContent = lista.length ? lista.length + " itens" : "Vazio";
+  const box = document.getElementById("erros-lista");
+  box.innerHTML = "";
+  if (!lista.length) {
+    box.innerHTML = '<p style="font-size:.84rem;color:var(--suave);margin:.3rem 0 0">As frases marcadas ou erradas nos drills aparecem aqui para revisão.</p>';
+    return;
+  }
+  lista.forEach((e) => {
+    const row = document.createElement("div");
+    row.className = "erro-item";
+    row.innerHTML = '<div><div class="erro-fr"></div><div class="erro-meta"></div></div>' +
+      '<button class="btn" type="button">Dominada ✓</button>';
+    row.querySelector(".erro-fr").textContent = e.fr;
+    row.querySelector(".erro-meta").textContent = [e.origem, e.nota, e.data].filter(Boolean).join(" · ");
+    row.querySelector("button").addEventListener("click", () => {
+      const nova = ler(STORAGE_ERROS, []).filter((x) => x.fr !== e.fr);
+      localStorage.setItem(STORAGE_ERROS, JSON.stringify(nova));
+      renderErros();
+    });
+    box.appendChild(row);
+  });
+}
+renderErros();
+
+function atualizarIA() {
+  const tem = Boolean((localStorage.getItem(STORAGE_KEY) || "").trim());
+  const b = document.getElementById("btn-ia");
+  b.classList.toggle("ativo", tem);
+  b.textContent = tem ? "✨ IA ativa" : "⚙️ IA";
+}
+atualizarIA();
+document.getElementById("btn-ia").addEventListener("click", () => {
+  document.getElementById("ia-key").value = localStorage.getItem(STORAGE_KEY) || "";
+  document.getElementById("ia-model").value = localStorage.getItem(STORAGE_MODEL) || "gemini-3.8-flash";
+  document.getElementById("modal-ia").showModal();
+});
+document.getElementById("ia-salvar").addEventListener("click", () => {
+  localStorage.setItem(STORAGE_KEY, document.getElementById("ia-key").value.trim());
+  localStorage.setItem(STORAGE_MODEL, document.getElementById("ia-model").value.trim() || "gemini-3.8-flash");
+  atualizarIA();
+  document.getElementById("modal-ia").close();
+});
+document.getElementById("ia-limpar").addEventListener("click", () => {
+  localStorage.removeItem(STORAGE_KEY);
+  atualizarIA();
+  document.getElementById("modal-ia").close();
+});
+document.getElementById("ia-fechar").addEventListener("click", () => document.getElementById("modal-ia").close());
+
+if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
+}
+</script>
 </body>
 </html>

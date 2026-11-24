@@ -9,6 +9,10 @@
 id: "05"
 titulo: "Discordar sem brigar"
 nivel: "B1+"
+bloco: "Drills extras"
+tipo: "drill"
+ordem: 95
+foco: "Subjuntivo com bien que / ne pas être sûr que e clivada ce qui… c'est"
 
 cena:
   - "Alors, tu as aimé le film ?"

@@ -39,6 +39,7 @@ DELTA_LENTO = 20
 # silencioso.
 PAUSA_DECOMPOSICAO = 5  # 3,5 s -- repetir o que se acabou de ouvir
 PAUSA_PRODUCAO = 6  # 4,2 s -- formular do zero custa mais
+PAUSA_CAPITULO = 3  # 2,1 s -- respiro entre capitulos num MP3 de bloco
 
 ETIQUETA_ERRO = "On ne dit pas :"
 ETIQUETA_CERTO = "On dit :"
@@ -75,6 +76,22 @@ def montar(licao: Licao) -> list[Passo]:
         passos.extend(_MONTADORES[bloco.tipo](bloco.itens, vel, devagar))
     passos.extend(_cena(licao, vel))
 
+    return passos
+
+
+def montar_bloco(licoes: list[Licao]) -> list[Passo]:
+    """Combina varias licoes num unico MP3 longo de caminhada com separadores falados."""
+    if not licoes:
+        raise ValueError("montar_bloco exige ao menos uma licao")
+
+    passos: list[Passo] = []
+    for indice, licao in enumerate(licoes):
+        if indice > 0:
+            passos.append(Pausa(PAUSA_CAPITULO))
+        rotulo = "Leitura" if licao.tipo == "leitura" else "Lição"
+        passos.append(Fala(f"{rotulo} {licao.id}. {licao.titulo}.", VOZ_PT))
+        passos.append(Pausa(PAUSA_CAPITULO))
+        passos.extend(montar(licao))
     return passos
 
 
