@@ -41,7 +41,11 @@ Construir o site completo em `docs/` (MP3s sincronizados em `docs/audio/`, pági
 ## Lições publicadas
 
 - **1 · Sobrevivência e Chegada (01–05):** Aulas 01 a 05 (A1 → A2, voz `fr-FR-DeniseNeural` a −10%)
-- **Leituras de Imersão:** *Une journée en ville* (30 frases narradas + laboratório de escuta e reconto)
+- **2 · Mesa e Cotidiano (06–10):** Aulas 06 a 10 (A1 → A2, restaurante, padaria, mercado e trânsito urbano)
+- **3 · Imprevistos e Autonomia (11–16):** Aulas 11 a 16 (A1 → A2 / A2 → A2+, saúde, perdas, greve, passagens e rotina)
+- **4 · Serviços e Cidade (17–23):** Aulas 17 a 23 (A2 → A2+, correios/loja, museu, clima e hotel)
+- **5 · Situações Complexas e Balanço (24–30):** Aulas 24 a 30 (A2 → A2+, jantar, correios, banco, consulta, turismo, visita guiada e balanço)
+- **Leituras de Imersão:** *Une journée en ville* (30 frases) e *Un week-end à Lyon* (passé composé e imparfait)
 - **Drills extras:** `01` — Combinar de sair (A2, −15%) e `05` — Discordar sem brigar (B1+)
 
 ## Publicação
